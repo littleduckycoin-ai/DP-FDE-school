@@ -6,11 +6,19 @@
 
 学员只需使用能直接读取网页或GitHub内容的Agent。学习不要求克隆仓库、建立本地项目、安装Git或Python，也不要求先登录GitHub。
 
-## 复制这段话就能开始
+## 先安装school-guide
+
+把[school-guide文件夹](https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide)发给Codex：
+
+> 请使用 $skill-installer 安装这个skill：https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide
+
+安装后直接说“使用`$school-guide`，根据我的问题推荐一个案例并开始学习”。[安装说明](INSTALL_SKILL.md)
+
+## 不安装也能开始
 
 > 请在线读取 https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/START_HERE.md ，按照其中的线上教学规则带我学习。每轮需要资料时读取线上当前版本，不建立本地教材副本。先用10分钟带我学习案例04，先讲清项目，再围绕我的判断展开讨论，并给出出处。
 
-[开始学习](START_HERE.md) · [24个案例](cases/README.md) · [学习方法](HOW_TO_LEARN.md) · [在线学习记录](https://github.com/littleduckycoin-ai/DP-FDE-school/issues?q=is%3Aissue+label%3Aschool-reflection) · [线上反馈入口](https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml)
+[安装skill](INSTALL_SKILL.md) · [直接开始学习](START_HERE.md) · [24个案例](cases/README.md) · [学习方法](HOW_TO_LEARN.md) · [在线学习记录](https://github.com/littleduckycoin-ai/DP-FDE-school/issues?q=is%3Aissue+label%3Aschool-reflection) · [线上反馈入口](https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml)
 
 ## 一所持续生长的学校
 

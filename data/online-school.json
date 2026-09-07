@@ -3,6 +3,8 @@
   "mode": "online",
   "persist_local_materials": false,
   "repository_url": "https://github.com/littleduckycoin-ai/DP-FDE-school",
+  "skill_install_url": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide",
+  "skill_install_prompt": "请使用 $skill-installer 安装这个skill：https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide",
   "default_branch": "main",
   "start_url": "https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/START_HERE.md",
   "guide_url": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/.codex/skills/school-guide/SKILL.md",
