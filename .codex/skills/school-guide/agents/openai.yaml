@@ -1,6 +1,6 @@
 interface:
   display_name: "FDE Online School Guide"
-  short_description: "直接读取线上案例开展学习，追加署名反馈，并实时整理大家的问题与分歧"
-  default_prompt: "使用 $school-guide 在线读取学校当前案例，带我学习并给出线上出处。"
+  short_description: "在线学习FDE案例，自动沉淀思考并汇总讨论"
+  default_prompt: "使用 $school-guide 在线打开FDE AI School，根据我的问题推荐一个案例并开始学习。"
 policy:
   allow_implicit_invocation: true

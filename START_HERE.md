@@ -1,5 +1,11 @@
 # 发一个链接，开始在线学习
 
+希望Codex以后自动识别FDE学习需求时，先[安装school-guide](INSTALL_SKILL.md)：
+
+> 请使用 $skill-installer 安装这个skill：https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide
+
+安装后直接说“使用`$school-guide`，根据我的问题推荐一个案例并开始学习”。不安装也可按下面方式在线学习。
+
 打开你常用的、能直接读取网页或GitHub内容的Agent，新建对话，复制下面这段话。整个学习过程从线上获取资料，不要求下载教材或配置本地项目。
 
 > 请在线读取 https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/START_HERE.md ，并继续读取其中的school-guide教学规则。每轮需要资料时读取线上当前版本，不克隆仓库、不建立本地教材副本。先用10分钟带我学习案例04：讲清行业痛点、FDE做了什么、交付了什么、效果与限制，再围绕我的判断展开讨论。回答请给出线上出处。
