@@ -29,7 +29,8 @@
         "original_title",
         "learning_title",
         "industry",
-        "main_slides"
+        "main_slides",
+        "case_id"
       ],
       "properties": {
         "id": {
@@ -44,6 +45,10 @@
           "items": {
             "type": "integer"
           }
+        },
+        "case_id": {
+          "type": "string",
+          "minLength": 8
         }
       }
     },

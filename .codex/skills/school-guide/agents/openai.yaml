@@ -1,0 +1,6 @@
+interface:
+  display_name: "FDE School Guide"
+  short_description: "案例共学、逐轮记录学员思考，并从有出处的记录中生成会前问题清单"
+  default_prompt: "使用 $school-guide 带我学习一个FDE案例，并自动整理我的思考和问题。"
+policy:
+  allow_implicit_invocation: true

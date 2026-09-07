@@ -1,6 +1,8 @@
 # 单个案例的数据结构｜2.1
 
-每例一个`case.json`，配套一个`case.md`。Markdown用于阅读和讲解，JSON保留可检索字段、详细扩充与完整原文，二者表达同一案例。[示例](../cases/01/case.json)
+学校目录索引现为3.0：每例新增稳定的`case_id`，基础JSON和Markdown位于`cases/<case_id>/base/`，另有`reflections_dir`和`canon_dir`供Agent路由。案例内容结构仍为2.1，原访谈不变；学员记录是独立的1.0格式，见[记录结构](../docs/reflection-format.md)，不混入案例事实字段。
+
+每例一个`case.json`，配套一个`case.md`。Markdown用于阅读和讲解，JSON保留可检索字段、详细扩充与完整原文，二者表达同一案例。[示例](../cases/case-01-manufacturing-training/base/case.json)
 
 ## 本次新增
 

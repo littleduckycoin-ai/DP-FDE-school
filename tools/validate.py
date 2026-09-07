@@ -1,10 +1,12 @@
 """Validate this document repository with Python's standard library only."""
 from pathlib import Path
+import argparse
 import hashlib
 import json
 import re
 import sys
 from urllib.parse import unquote
+import school
 
 ROOT = Path(__file__).resolve().parents[1]
 errors = []
@@ -58,8 +60,8 @@ integrity = read_json(ROOT / 'sources/integrity.json')
 expected = {x['id']: x for x in integrity['cases']}
 check(len(index['cases']) == 24, 'Index must contain 24 cases')
 check([x['id'] for x in index['cases']] == list(range(1, 25)), 'Case IDs must be unique and ordered')
-check(len(list((ROOT / 'cases').glob('*/case.md'))) == 24, 'Expected 24 Markdown cases')
-check(len(list((ROOT / 'cases').glob('*/case.json'))) == 24, 'Expected 24 JSON cases')
+check(len(list((ROOT / 'cases').glob('*/base/case.md'))) == 24, 'Expected 24 Markdown cases')
+check(len(list((ROOT / 'cases').glob('*/base/case.json'))) == 24, 'Expected 24 JSON cases')
 catalog = (ROOT / 'cases/README.md').read_text(encoding='utf-8')
 qa_count = 0
 figures = 0
@@ -69,6 +71,11 @@ for item in index['cases']:
     md = (ROOT / item['markdown_file']).read_text(encoding='utf-8')
     schema_check(c, schema, f'case {cid:02d}')
     check(c['identity']['id'] == cid, f'{cid}: ID mismatch')
+    check(c['identity']['case_id'] == item['case_id'], f'{cid}: case slug mismatch')
+    check(item['markdown_file'] == f'cases/{item["case_id"]}/base/case.md', f'{cid}: unexpected base path')
+    check((ROOT / item['json_file']).parent.joinpath(c['$schema']).resolve() == ROOT/'data/case.schema.json', f'{cid}: schema path mismatch')
+    for area in ['reflections_dir','canon_dir']:
+        check((ROOT / item[area] / 'README.md').is_file(), f'{cid}: missing {area} guide')
     check(c['identity']['learning_file'] == item['markdown_file'], f'{cid}: Markdown path mismatch')
     check(c['identity']['data_file'] == item['json_file'], f'{cid}: JSON path mismatch')
     intro = c['one_sentence_intro']
@@ -110,11 +117,72 @@ check(figures == 50, 'Expected 50 source figures')
 check(len(list((ROOT / 'assets').iterdir())) == 74, 'Expected 74 source image files')
 pdf = ROOT / 'sources/original-interviews.pdf'
 check(hashlib.sha256(pdf.read_bytes()).hexdigest() == integrity['source_pdf_sha256'], 'Original PDF differs')
+
+frozen = read_json(ROOT / 'data/base-manifest.json')
+frozen_paths = {p.relative_to(ROOT).as_posix() for p in (ROOT/'cases').glob('*/base/*') if p.is_file()}
+check(set(frozen['files']) == frozen_paths, 'Frozen base file list differs')
+for relative, expected_hash in frozen['files'].items():
+    path = ROOT / relative
+    check(path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == expected_hash, f'Frozen base changed: {relative}; explain authorized corrections in a reviewed PR')
+
+reflection_count = 0
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--base-ref', help='Check that a PR preserves the referenced learner history')
+args = parser.parse_args()
+try:
+    reflection_count = len(school.validate_reflections(ROOT))
+    if args.base_ref:
+        school.preserve_history(ROOT, args.base_ref)
+except (ValueError, KeyError, TypeError, OSError) as exc:
+    errors.append('Learner records: ' + str(exc))
+
+def frontmatter_json(text):
+    match = re.match(r'^---\n(.*?)\n---\n', text, re.S)
+    if not match:
+        raise ValueError('Missing frontmatter')
+    values = {}
+    for line in match.group(1).splitlines():
+        key, sep, value = line.partition(':')
+        if not sep or key in values:
+            raise ValueError('Invalid or duplicate metadata key')
+        values[key] = json.loads(value.strip())
+    return values
+
+reviewed_docs = list((ROOT/'cases').glob('*/canon/*.md')) + list((ROOT/'patterns').glob('*.md'))
+known_case_ids = {x['case_id'] for x in index['cases']}
+for path in reviewed_docs:
+    if path.name == 'README.md':
+        continue
+    try:
+        meta = frontmatter_json(path.read_text(encoding='utf-8'))
+        kind = 'canon' if path.parent.name == 'canon' else 'pattern'
+        check(meta.get('document_type') == kind, f'{path}: wrong document type')
+        check(meta.get('status') in ['proposed','accepted'], f'{path}: invalid review status')
+        check(isinstance(meta.get('authors'),list) and bool(meta['authors']), f'{path}: missing authors')
+        if kind == 'canon':
+            check(meta.get('case_id') == path.parent.parent.name, f'{path}: wrong case')
+        else:
+            ids = meta.get('case_ids',[])
+            check(isinstance(ids,list) and len(set(ids)) >= 2 and set(ids) <= known_case_ids, f'{path}: pattern needs at least two known cases')
+        if meta.get('status') == 'accepted':
+            check(isinstance(meta.get('review_pr'),str) and bool(re.fullmatch(r'https://github.com/littleduckycoin-ai/DP-FDE-school/pull/[1-9][0-9]*',meta['review_pr'])), f'{path}: accepted content requires a review PR')
+    except (ValueError, KeyError, TypeError) as exc:
+        errors.append(f'{path.relative_to(ROOT)}: {exc}')
+
+canonical = ROOT/'.codex/skills/school-guide/SKILL.md'
+skill_text = canonical.read_text(encoding='utf-8')
+skill_metadata = skill_text.split('---\n',2)[1]
+for native in ['.agents','.claude']:
+    adapter = ROOT/native/'skills/school-guide/SKILL.md'
+    content = adapter.read_text(encoding='utf-8')
+    check(content.split('---\n',2)[1] == skill_metadata, f'{native}: skill metadata differs')
+    check('../../../.codex/skills/school-guide/SKILL.md' in content, f'{native}: missing canonical rule link')
+
 link_count = 0
 for path in ROOT.rglob('*.md'):
-    if '.git' in path.parts:
+    if '.git' in path.parts or '.school' in path.parts:
         continue
-    text = path.read_text(encoding='utf-8')
+    text = school.MARKER.sub('', path.read_text(encoding='utf-8'))
     for target in re.findall(r'!?\[[^\]]*\]\(([^)]+)\)', text):
         if target.startswith(('https://', 'http://', 'mailto:')):
             continue
@@ -125,6 +193,6 @@ for path in ROOT.rglob('*.md'):
             check(f'<a id="{anchor}"></a>' in dest.read_text(encoding='utf-8'), f'{path.relative_to(ROOT)}: missing anchor {target}')
         link_count += 1
 
-result = {'status': 'passed' if not errors else 'failed', 'case_files': {'markdown': 24, 'json': 24}, 'full_qa_verified': qa_count, 'source_figures': figures, 'original_image_files': 74, 'editorial_flow_diagrams': 24, 'relative_links_checked': link_count, 'schema_keywords_checked': True, 'pdf_sha256': integrity['source_pdf_sha256'], 'errors': errors}
+result = {'status': 'passed' if not errors else 'failed', 'case_files': {'markdown': 24, 'json': 24}, 'full_qa_verified': qa_count, 'frozen_base_files': len(frozen['files']), 'learner_records': reflection_count, 'source_figures': figures, 'original_image_files': 74, 'editorial_flow_diagrams': 24, 'relative_links_checked': link_count, 'schema_keywords_checked': True, 'pdf_sha256': integrity['source_pdf_sha256'], 'errors': errors}
 print(json.dumps(result, ensure_ascii=False, indent=2))
 sys.exit(1 if errors else 0)

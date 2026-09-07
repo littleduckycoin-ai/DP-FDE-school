@@ -1,3 +1,3 @@
-# 小组共学结论
+# 旧版共学入口
 
-这里用于保存经过讨论、准备纳入课程的结论。使用templates/group-insight.md作为起点；保留不同意见和原文依据。当前尚无小组真实讨论记录。
+新版按用途归档：[学员记录](../docs/reflection-format.md)、[会议资料](../meetings/README.md)、各案例`canon/`和[跨案例模式](../patterns/README.md)。保留此页方便旧链接继续找到资料，不在此处混放新记录。

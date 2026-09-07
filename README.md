@@ -1,52 +1,75 @@
 # FDE AI School
 
-24个FDE落地案例，面向研发、产品、业务与交付人员的案例共学。每例先用口语化简介讲清项目，再展开行业、方案形成、交付、实际效果与迁移练习，最后保留完整访谈。
+**读案例，与AI讨论，把自己的判断留给下一位学习者。**
 
-**[进入24例目录](cases/README.md)** · **[让Codex带你学习](START_HERE.md)** · [四次共学路线](curriculum/routes.md)
+这里有24个FDE落地案例，涵盖制造、政务、法律、设计、零售、供应链等场景。每例包含口语化简介、行业约束、方案形成过程、交付物、成效与边界、迁移练习，以及完整访谈和原图。建议每次用6分钟理解案例、4分钟讨论一个关键判断；详解可在课前阅读。
 
-## 资料怎样组织
+学校的内容会随学习长厚：基础教材提供证据，学员记录保留不同想法，会议聚焦真实问题，经过审核的拆解和模式形成下一轮教材。
 
-| 内容 | 入口 |
-|---|---|
-| 24份逐例Markdown详解 | `cases/01/case.md` 至 `cases/24/case.md` |
-| 24份逐例JSON数据 | `cases/01/case.json` 至 `cases/24/case.json` |
-| 一句话简介与检索索引 | [案例目录](cases/README.md) / [轻量JSON索引](data/case-index.json) |
-| 数据结构与字段约定 | [结构说明](data/schema-guide.md) / [JSON Schema](data/case.schema.json) |
-| 144组完整问答、原页文字与原图 | 每例末尾完整访谈、JSON中的provenance、[原PDF](sources/original-interviews.pdf) |
-| 共学课程与主持提示 | [课程路线](curriculum/routes.md) / [主持人手册](curriculum/facilitator.md) |
-| AI导师的项目指令 | [AGENTS.md](AGENTS.md) |
+[开始学习](START_HERE.md) · [24个案例](cases/README.md) · [学习方法](HOW_TO_LEARN.md) · [会前汇总](docs/meeting-workflow.md) · [参与贡献](docs/contributing.md)
 
-本次发布专门扩充Markdown和JSON。此前PPT中的页码引用保留作参考，PPT文件仍在此前交付材料中。
+## 直接对Agent说
 
-## 直接用Codex读
+在Codex或Claude Code打开本仓库后，可以说：
 
-在Codex云端连接本仓库并创建/选择对应环境，或下载/克隆整个仓库，在本地Codex中打开项目根目录。然后发送：
+> 我是 alice，昵称小艾。带我用10分钟学习案例04，记录我的思考和问题。
+
+> 看看同学对案例06有哪些不同判断，并把我的反馈记在我的文件里。
+
+> 提交我今天的课前记录，创建一个PR。
+
+> 汇总主分支里案例01、04、06的课前记录，列出问题、分歧和建议讨论顺序。
+
+以上名字仅用于演示。首次使用请给自己一个稳定的学习者标识和可公开昵称。Agent按仓库skill保存每轮实质讨论；本地保存后，提交并合并到主分支的记录才成为默认共享学习资料。
+
+## 内容放在哪里
 
 ```text
-阅读AGENTS.md和cases/README.md。你是我的FDE学习导师。
-我是研发人员，先从案例04开始，按10分钟节奏带我学习。
-先讲清楚这个项目做了什么，再问我一个关键判断。
-引用原文时给出PDF物理页；迁移到实际工作时标明假设。
+FDE AI School/
+├── README.md / HOW_TO_LEARN.md       介绍、校规与学习循环
+├── AGENTS.md / CLAUDE.md             Agent入口
+├── .codex/skills/school-guide/       唯一的完整skill规则
+├── .agents/skills/school-guide/      Codex发现入口
+├── .claude/skills/school-guide/      Claude Code发现入口
+├── cases/
+│   └── case-04-urban-planning-tools/
+│       ├── base/                    案例详解与完整访谈
+│       ├── reflections/             学员记录：一人一天一个文件
+│       └── canon/                   经PR审核的案例拆解
+├── patterns/                        经PR审核的跨案例方法
+├── meetings/                        会前资料、Agent整理、会议决定
+├── sources/ / assets/ / data/        原始证据、图片和结构化索引
+├── templates/ / tools/ / tests/      记录模板、辅助工具和验证
+└── .github/                         CODEOWNERS、PR模板和自动检查
 ```
 
-也可以直接问：“比较案例06、17、21，为什么AI输出还需要专业人员确认？”或提交自己的试点方案，让Codex根据案例提出修改建议。
+## 校规：保留判断，也保留分歧
 
-GitHub提供教材，Codex需要先获得对应项目的文件访问。共用仓库不会自动合并成员的聊天记录；学习记录可按需保存。[详细接入步骤](START_HERE.md)
+| 内容 | 它能说明什么 | 怎么更新 |
+|---|---|---|
+| `base/` | 访谈陈述和明确标注的教材分析 | 仅教材维护，走受保护的PR审核 |
+| `reflections/` | 某位学员在某时刻的想法，不代表共识 | 自动追加自己的记录，更正也保留前文；PR共享 |
+| `canon/` | 关于一个案例的系统拆解 | 提案与已审版本分开，由CODEOWNER审核 |
+| `patterns/` | 多个案例支持、带适用边界的方法 | 引用至少两个案例，PR审核后沉淀 |
+| `meetings/` | 有范围的会前资料和实际会议产出 | 自动资料、Agent分析与已确认决定分别保存 |
 
-## 一例10分钟怎么学
+不把Agent回答写成学员观点，不把提问次数当成赞成票，不因Agent回答过就关闭问题。引用尽量落到案例、PDF页码或具体记录编号。公开记录使用适合公开的内容；私密学习可让Agent仅写到Git忽略的`.school/private/`。
 
-前6分钟抓住现场、转折、工作流程、交付与效果，后4分钟做一个具体迁移练习。详细段落用于课前阅读和追问，完整访谈用于核对信息。每次留下一个决定、一条依据、一项适用条件和一个待验证动作。
+CODEOWNERS与分支保护共同约束基础资料、正式拆解和模式的改动；具体规则与管理员例外见[治理说明](docs/governance.md)。它们不提供逐文件的保密能力，公共仓库内的内容可被公开阅读。
 
-24例分为四次共学：专业工具与可控交付、知识与团队能力、流程采用与组织变化、经营联动与价值验证。个人可按任务自由选择。
+## 一次共学如何留下成果
 
-## 资料依据
+```mermaid
+flowchart LR
+  A[阅读基础案例] --> B[与Agent讨论]
+  B --> C[署名思考与问题]
+  C --> D[PR合并，共享记录]
+  D --> E[有出处的会前汇总]
+  E --> F[会上讨论与确认]
+  F --> G[审核案例拆解与跨案例模式]
+  G --> A
+```
 
-原文来自用户提供的Datawhale《FDE案例100》，原文署期2026年9月6日；课程整理日期为2026年9月7日。保留24例、144组问答、24张案例封面和50张正文原图，原PDF共247个物理页面，逐字节保存。
+仓库提供规则与工具，需要Agent在每轮学习中执行记录操作。GitHub链接本身是教材入口；它不会自动创建一个所有人共享聊天历史的AI。每个人的对话通过提交的署名记录汇合，详见[接入说明](docs/access-options.md)。
 
-原访谈陈述、编辑补充分析和迁移假设演练分别标明。试点数字、估算、尚未实现的目标、其他客户经验和脱敏数据保留限定。[来源说明](sources/README.md) · [内容校验报告](docs/content-check.json)
-
-## 共建课程
-
-个人学习记录默认不进入Git，可使用[记录模板](templates/learning-note.md)。小组讨论结论可用[共学模板](templates/group-insight.md)整理到`shared-notes/`，维护者选择纳入课程。
-
-修改案例时同时更新该例MD与JSON，简介改动同步索引，并保留原文来源。运行`python tools/validate.py`完成基础内容与链接校验。
+维护者可运行`python tools/validate.py`与`python -m unittest discover -s tests -v`检查资料完整性、记录行为和汇总边界。资料字段见[数据结构说明](data/schema-guide.md)，原始来源见[sources](sources/README.md)。

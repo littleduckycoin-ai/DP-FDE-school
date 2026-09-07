@@ -1,8 +1,10 @@
+.school/
 learning-notes/*
 !learning-notes/README.md
 .env
 .env.*
 !.env.example
 __pycache__/
+*.pyc
 .DS_Store
 Thumbs.db
