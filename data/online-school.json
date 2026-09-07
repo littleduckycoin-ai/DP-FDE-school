@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "mode": "online",
+  "persist_local_materials": false,
+  "repository_url": "https://github.com/littleduckycoin-ai/DP-FDE-school",
+  "default_branch": "main",
+  "start_url": "https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/START_HERE.md",
+  "guide_url": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/.codex/skills/school-guide/SKILL.md",
+  "case_index_url": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/data/case-index.json",
+  "github_head_api": "https://api.github.com/repos/littleduckycoin-ai/DP-FDE-school/commits/main",
+  "github_contents_api": "https://api.github.com/repos/littleduckycoin-ai/DP-FDE-school/contents/",
+  "raw_main_prefix": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/",
+  "freshness": "Check current online source revision each material-dependent turn; use one revision per answer; disclose failed or partial reads.",
+  "feedback": {
+    "channel": "github_issues",
+    "label": "school-reflection",
+    "title_prefix": "[学习记录]",
+    "new_form_url": "https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml",
+    "issues_api": "https://api.github.com/repos/littleduckycoin-ai/DP-FDE-school/issues",
+    "comments_api_template": "https://api.github.com/repos/littleduckycoin-ai/DP-FDE-school/issues/{number}/comments",
+    "write_requires": "An authorized GitHub connection and learner consent; reading is independent of writing."
+  },
+  "archives": "cases/<case-id>/reflections/",
+  "reviewed_knowledge": [
+    "cases/<case-id>/canon/",
+    "patterns/"
+  ]
+}

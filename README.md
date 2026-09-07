@@ -1,75 +1,48 @@
 # FDE AI School
 
-**读案例，与AI讨论，把自己的判断留给下一位学习者。**
+**给Agent一个学校链接，让它在线读案例，带你学习。**
 
-这里有24个FDE落地案例，涵盖制造、政务、法律、设计、零售、供应链等场景。每例包含口语化简介、行业约束、方案形成过程、交付物、成效与边界、迁移练习，以及完整访谈和原图。建议每次用6分钟理解案例、4分钟讨论一个关键判断；详解可在课前阅读。
+学校的教材、学员讨论和正式拆解持续保存在GitHub。Agent在每轮需要资料时访问线上来源，结合你的问题讲解、追问和比较，让同一份在线知识服务不同学习者。
 
-学校的内容会随学习长厚：基础教材提供证据，学员记录保留不同想法，会议聚焦真实问题，经过审核的拆解和模式形成下一轮教材。
+学员只需使用能直接读取网页或GitHub内容的Agent。学习不要求克隆仓库、建立本地项目、安装Git或Python，也不要求先登录GitHub。
 
-[开始学习](START_HERE.md) · [24个案例](cases/README.md) · [学习方法](HOW_TO_LEARN.md) · [会前汇总](docs/meeting-workflow.md) · [参与贡献](docs/contributing.md)
+## 复制这段话就能开始
 
-## 直接对Agent说
+> 请在线读取 https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/START_HERE.md ，按照其中的线上教学规则带我学习。每轮需要资料时读取线上当前版本，不建立本地教材副本。先用10分钟带我学习案例04，先讲清项目，再围绕我的判断展开讨论，并给出出处。
 
-在Codex或Claude Code打开本仓库后，可以说：
+[开始学习](START_HERE.md) · [24个案例](cases/README.md) · [学习方法](HOW_TO_LEARN.md) · [在线学习记录](https://github.com/littleduckycoin-ai/DP-FDE-school/issues?q=is%3Aissue+label%3Aschool-reflection) · [线上反馈入口](https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml)
 
-> 我是 alice，昵称小艾。带我用10分钟学习案例04，记录我的思考和问题。
-
-> 看看同学对案例06有哪些不同判断，并把我的反馈记在我的文件里。
-
-> 提交我今天的课前记录，创建一个PR。
-
-> 汇总主分支里案例01、04、06的课前记录，列出问题、分歧和建议讨论顺序。
-
-以上名字仅用于演示。首次使用请给自己一个稳定的学习者标识和可公开昵称。Agent按仓库skill保存每轮实质讨论；本地保存后，提交并合并到主分支的记录才成为默认共享学习资料。
-
-## 内容放在哪里
-
-```text
-FDE AI School/
-├── README.md / HOW_TO_LEARN.md       介绍、校规与学习循环
-├── AGENTS.md / CLAUDE.md             Agent入口
-├── .codex/skills/school-guide/       唯一的完整skill规则
-├── .agents/skills/school-guide/      Codex发现入口
-├── .claude/skills/school-guide/      Claude Code发现入口
-├── cases/
-│   └── case-04-urban-planning-tools/
-│       ├── base/                    案例详解与完整访谈
-│       ├── reflections/             学员记录：一人一天一个文件
-│       └── canon/                   经PR审核的案例拆解
-├── patterns/                        经PR审核的跨案例方法
-├── meetings/                        会前资料、Agent整理、会议决定
-├── sources/ / assets/ / data/        原始证据、图片和结构化索引
-├── templates/ / tools/ / tests/      记录模板、辅助工具和验证
-└── .github/                         CODEOWNERS、PR模板和自动检查
-```
-
-## 校规：保留判断，也保留分歧
-
-| 内容 | 它能说明什么 | 怎么更新 |
-|---|---|---|
-| `base/` | 访谈陈述和明确标注的教材分析 | 仅教材维护，走受保护的PR审核 |
-| `reflections/` | 某位学员在某时刻的想法，不代表共识 | 自动追加自己的记录，更正也保留前文；PR共享 |
-| `canon/` | 关于一个案例的系统拆解 | 提案与已审版本分开，由CODEOWNER审核 |
-| `patterns/` | 多个案例支持、带适用边界的方法 | 引用至少两个案例，PR审核后沉淀 |
-| `meetings/` | 有范围的会前资料和实际会议产出 | 自动资料、Agent分析与已确认决定分别保存 |
-
-不把Agent回答写成学员观点，不把提问次数当成赞成票，不因Agent回答过就关闭问题。引用尽量落到案例、PDF页码或具体记录编号。公开记录使用适合公开的内容；私密学习可让Agent仅写到Git忽略的`.school/private/`。
-
-CODEOWNERS与分支保护共同约束基础资料、正式拆解和模式的改动；具体规则与管理员例外见[治理说明](docs/governance.md)。它们不提供逐文件的保密能力，公共仓库内的内容可被公开阅读。
-
-## 一次共学如何留下成果
+## 一所持续生长的学校
 
 ```mermaid
 flowchart LR
-  A[阅读基础案例] --> B[与Agent讨论]
-  B --> C[署名思考与问题]
-  C --> D[PR合并，共享记录]
-  D --> E[有出处的会前汇总]
-  E --> F[会上讨论与确认]
-  F --> G[审核案例拆解与跨案例模式]
-  G --> A
+  A[学员发链接和学习目标] --> B[Agent在线读取相关资料]
+  B --> C[讲解、追问与讨论]
+  C --> D[署名反馈进入线上记录]
+  D --> E[会前实时汇总问题与分歧]
+  E --> F[审核后沉淀拆解与模式]
+  F --> B
 ```
 
-仓库提供规则与工具，需要Agent在每轮学习中执行记录操作。GitHub链接本身是教材入口；它不会自动创建一个所有人共享聊天历史的AI。每个人的对话通过提交的署名记录汇合，详见[接入说明](docs/access-options.md)。
+| 在线资料 | 学习时如何使用 |
+|---|---|
+| `cases/<case-id>/base/` | 24个基础案例：口语化简介、行业约束、解法形成、交付与成效、完整访谈和原图 |
+| 学习记录Issues及评论 | 每位学员的思考、评价、问题和修订；发布后即可在线读取，无需等待教材合并 |
+| `cases/<case-id>/reflections/` | 该案例的在线讨论入口，以及已归档的署名学习记录 |
+| `cases/<case-id>/canon/` | 经PR审核的案例拆解；待审与已审版本分开 |
+| `patterns/` | 跨至少两个案例的方法、适用边界与反例 |
+| `meetings/` | 已发布的会前资料、Agent整理和实际确认的会议决定 |
 
-维护者可运行`python tools/validate.py`与`python -m unittest discover -s tests -v`检查资料完整性、记录行为和汇总边界。资料字段见[数据结构说明](data/schema-guide.md)，原始来源见[sources](sources/README.md)。
+## 校规
+
+访谈事实、教材分析、学员观点和Agent建议分别标明。相近提问不等于共识，Agent给答案不等于学员的问题已解决；原文不足时明确说明。
+
+学习者可以先匿名阅读，需要署名反馈时再提供稳定标识和昵称。学员首次明确授权后，具备GitHub写入能力的Agent逐轮追加线上记录，返回实际记录链接。没有写入连接时继续教学，并提供可直接提交的文字与线上入口；不能声称已保存。
+
+案例教学以当轮线上读取为准；在线反馈发布状态与正式教材审核状态分开。反馈进入Issues即可参与讨论和会前整理，canon与patterns仍须PR审核。公共记录应使用可公开的昵称和内容。
+
+## 给Agent与维护者
+
+[AGENTS.md](AGENTS.md)是入口，[school-guide](.codex/skills/school-guide/SKILL.md)维护完整规则；Codex和Claude Code的发现入口共用它。Agent也可通过[在线服务索引](data/online-school.json)找到各类URL。
+
+仓库中的脚本和CI服务于维护、验证和归档。它们不是学员的初始化步骤。现有基础案例与144段完整问答保留；[数据结构](data/schema-guide.md)、[来源](sources/README.md)、[在线读取协议](docs/online-protocol.md)、[反馈流程](docs/contributing.md)和[审核规则](docs/governance.md)可按需查阅。

@@ -1,3 +1,3 @@
-# 旧版共学入口
+# 共学入口
 
-新版按用途归档：[学员记录](../docs/reflection-format.md)、[会议资料](../meetings/README.md)、各案例`canon/`和[跨案例模式](../patterns/README.md)。保留此页方便旧链接继续找到资料，不在此处混放新记录。
+直接查看[线上学习记录](https://github.com/littleduckycoin-ai/DP-FDE-school/issues?q=is%3Aissue+label%3Aschool-reflection)，或让Agent按[会议流程](../docs/meeting-workflow.md)读取大家的当前问题。正式沉淀保存在各例canon及[patterns](../patterns/README.md)。

@@ -1,4 +1,8 @@
-"""Identity, append-only learning records, and traceable meeting packs. Stdlib only."""
+"""Maintenance-only file archives and legacy meeting packs. Stdlib only.
+
+The learner-facing school reads live online sources. This tool is not a student
+setup requirement, and its brief command does not cover unarchived online Issues.
+"""
 import argparse
 from contextlib import contextmanager
 from datetime import date, datetime, timezone

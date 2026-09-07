@@ -1,7 +1,7 @@
-# case-21-fire-design-drafts｜学员记录
+# case-21-fire-design-drafts｜线上学习记录
 
-学习讨论中自动记录本人的思考、评价、问题、应用设想和分歧。命名为`学习者标识-YYYY-MM-DD.md`，同日继续追加。
+[查看该案例的在线讨论](https://github.com/littleduckycoin-ai/DP-FDE-school/issues?q=is%3Aissue%20%22case-21-fire-design-drafts%22) · [提交思考与问题](https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml)
 
-当前没有预置的真实学员记录。Agent先确认学习者标识，再调用`tools/school.py record`写入；身份不明或用户要求私下讨论时，不创建公共署名记录。
+同一学员、同一案例复用一个学习记录Issue，每轮追加评论。帖子保留学习者标识、昵称、问题、评价、思考、修订及原文出处；发布后即可在线读取，不要求先合并为教材。
 
-反馈同学时，写在自己的文件中并引用对方记录编号。纠正旧观点也新增一条修订，保留观点变化过程。[记录规则](../../../docs/reflection-format.md) · [返回案例](../README.md)
+本目录也可保留已归档的署名记录。Agent汇总时同时读取线上讨论与归档，按原链接或稳定ID去重。身份和GitHub写入连接仅在发布时需要，不妨碍先学习。[记录格式](../../../docs/reflection-format.md) · [返回案例](../README.md)

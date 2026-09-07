@@ -1,15 +1,14 @@
-# 教材链接与Agent工作区
+# 接入学校：先能在线读取，再按需连接写入
 
-GitHub负责存放共享教材和记录；Codex或Claude Code负责对话、读取文件与执行归档规则。两者通过仓库文件协作，每个人的私人聊天不会自动成为共同记忆。
+学员将[学校链接](https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/START_HERE.md)发给能直接读取网页或GitHub内容的Agent，即可开始。无需本地项目、教材下载、Git/Python安装或本地skill初始化。
 
-| 使用方式 | 适合做什么 | 记录如何保留 |
-|---|---|---|
-| 直接打开GitHub | 阅读案例、同学记录和已审拆解 | 网页阅读本身不创建学习记录 |
-| 本地Codex或Claude Code | 持续学习、逐轮保存和整理 | 本地文件；授权后推送PR并合并共享 |
-| Codex云端仓库环境 | 在线读取仓库、学习和提交改动 | 确认环境可写且有GitHub权限；结束前提交需要持久保留的内容 |
+| Agent当前能力 | 学员可以做什么 |
+|---|---|
+| 能直接读取网页、HTTP或GitHub文件 | 在线学习、追问、对比案例、查看同伴意见和整理会前问题 |
+| 已连接GitHub且具备相应写权限 | 在一次明确授权后，逐轮追加署名线上学习记录并返回链接 |
+| 能读但不能写 | 正常学习；Agent整理反馈，学员通过学校在线表单提交 |
+| 只能检索搜索摘要或不能联网 | Agent应说明读取受限，引导使用可直接访问学校的工具；不能声称已读到全文 |
 
-Codex当前项目skill入口使用`.agents/skills`，Claude Code使用`.claude/skills`，本仓库的两个入口都指向`.codex/skills/school-guide/SKILL.md`。[Codex官方技能说明](https://learn.chatgpt.com/docs/build-skills)、[Claude Code官方技能说明](https://code.claude.com/docs/en/skills)。
+读取公开资料不要求学员先登录GitHub；发布反馈需要对应GitHub账号或已授权连接。聊天链接不会自动授予写权限。这里的“初始化”是Agent在线读教学说明、了解学习目标，并按需确认署名与记录授权。
 
-云端环境的创建与GitHub连接方式见[Codex云端官方文档](https://learn.chatgpt.com/docs/cloud)。客户端界面会更新，以当前入口为准。课程本身没有独立登录系统、托管聊天机器人或自动的全组聊天访问权限。
-
-返回[开始学习](../START_HERE.md)。
+不同Agent的连接入口由其客户端提供；学校教学规则通过在线阅读使用，不要求安装客户端专属插件。协议见[在线读取与写入](online-protocol.md)。
