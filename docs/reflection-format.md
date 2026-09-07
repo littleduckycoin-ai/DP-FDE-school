@@ -1,64 +1,48 @@
-# 学习记录的结构与归档
+# 线上学习记录
 
-每个案例的`reflections/`保存学员的署名记录，文件名是`<learner-id>-YYYY-MM-DD.md`。一天可以讨论多轮，都追加到同一个文件；不同案例分别归档。Markdown可直接阅读，末尾的JSON注释供工具可靠提取，两部分由同一工具生成。
+每位学习者、每个案例复用一个学习记录Issue，每轮新增评论。标题建议为`[学习记录] case-04-urban-planning-tools / alice`。发布后其他学习者和会前Agent可直接在线读取。
 
-## 一条记录包含什么
+## 一轮记录的内容
 
-| 层级 | 字段 | 含义 |
-|---|---|---|
-| 文件 | `case_id`、`learner_id`、`display_name` | 案例、稳定学习者标识和公开昵称 |
-| 文件 | `identity_source`、`study_date`、`visibility` | 身份为本人自述；学习日期；共享草稿或私密 |
-| 每轮 | `interaction_id`、`created_at`、`summary` | 重试不变的轮次编号、含时区的记录时间、简短主题 |
-| 学员内容 | `entry_id`、`kind`、`text` | 可引用的唯一编号、内容类型、实际表达 |
-| 表达来源 | `capture`、`confirmation` | 原话或概括；自动记录或学员明确确认 |
-| 证据与关联 | `source_refs`、`relates_to`、`target_id` | 案例页码、同伴记录、被修订的旧记录或问题 |
-| Agent内容 | `agent_feedback`、`next_steps` | 单独存放的建议，不代表学员认同或承诺 |
+| 字段 | 含义 |
+|---|---|
+| `case_id` | 案例索引中的稳定案例标识 |
+| `learner_id`、`display_name` | 用户自述的稳定标识和公开昵称 |
+| `interaction_id` | 本次会话的稳定轮次ID；同轮重试不换ID |
+| `contributions` | 用户真实的思考、评价、问题、应用设想、分歧、反馈或修订 |
+| `capture`、`confirmation` | 原话/概括；自动记录captured或用户明确确认confirmed |
+| `source_refs`、`target_id`、`relates_to` | 案例页码、被修订的记录、同伴记录关联 |
+| `agent_feedback`、`next_steps` | 单独存放的Agent建议；不代表学员认同或承诺 |
+| GitHub回执 | 实际发布账户、帖子/评论ID、创建和修改时间、线上URL |
 
-`kind`支持`thought`思考、`evaluation`评价、`question`问题、`application`应用设想、`disagreement`分歧、`feedback`同伴反馈、`revision`修订、`question_status`问题状态。一个发言可以拆成多条不同类型的内容，不能为了充实记录而虚构表达。
+内容类型沿用`thought`、`evaluation`、`question`、`application`、`disagreement`、`feedback`、`revision`和`question_status`。条目ID由`case_id:learner_id:interaction_id:序号`组成。修订和问题状态指向原条目；反馈同伴放在自己的主题，不替对方改观点。
 
-## Agent写入示例
+## 给Agent的可复制正文结构
 
-下面是格式示例，**不是任何人的真实学习记录**。先读取具体案例核对内容，再使用实际用户表达替换：
+下面仅为格式示例，不是任何人的真实记录。替换实际作者、案例与用户表达后发布：
 
-```json
-{
-  "interaction_id": "s-example-t01",
-  "summary": "讨论最小交付应该验证什么",
-  "contributions": [
-    {
-      "kind": "question",
-      "text": "如果用户还要在两个工具之间来回切换，怎么判断这个交付真的省了时间？",
-      "capture": "verbatim",
-      "confirmation": "captured",
-      "source_refs": []
-    }
-  ],
-  "agent_feedback": ["可以把单步操作耗时与整项任务完成时间分别测量。"],
-  "next_steps": ["选一个完整任务设计前后对照；这是建议，尚未成为承诺。"]
-}
+```text
+案例：case-04-urban-planning-tools
+学习者：alice｜小艾（本人自述）
+轮次：s-example-t01
+记录方式：自动概括，可追加更正
+
+学员问题：［用户实际提出的问题］
+学员思考/评价：［用户实际表达的判断；没有就不填］
+原文依据：［案例、PDF物理页与线上链接；尚未核实就明确说明］
+Agent建议：［与学员观点分开］
 ```
 
-Agent将JSON写入被忽略的`.school/turn.json`，在仓库根目录执行：
+需要机器提取时，可在正文末尾附`school-turn-v1` JSON注释。字段为`schema_version: "1.1"`、`case_id`、`learner_id`、`display_name`、`identity_source: "self_declared"`及`interaction`；interaction沿用原记录工具的`interaction_id/summary/contributions/agent_feedback/next_steps`字段。可见正文必须与结构化内容表达一致。
 
-```sh
-python tools/school.py record --case 04 --input .school/turn.json
-```
+使用网页[学习记录表单](https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml)提交的普通文字同样有效，不强制人类写JSON。Agent应读取表单中的案例、学习者标识、昵称与思考问题，保留原文和发布者信息。
 
-学习者身份来自此前明确设置的`.school/identity.json`，不接受输入JSON偷偷换人。`record`只写本地、不执行Git推送；返回结果含路径和记录编号。`--date`可指定学习日期，默认使用运行环境当天日期；云端跨时区时应显式传学员当地日期。`created_at`用UTC记录实际归档时间，会前截止过滤以它为准。
+## 每轮追加，保留变化
 
-引用结构为`{"case_id":"04","pdf_pages":[实际页码],"note":"引用用途"}`；工具按索引校验页码范围，Agent仍需核对原文是否支持观点。没有对应原文依据可用空列表，不编造页码。
+同一轮重试先查已有interaction_id，已发布就返回原链接。不同内容追加新轮次；更正引用原记录并说明变化。`question_status`只有提出者明确表示后才可更新为`open/answered/deferred/discussed`，只有answered代表已解决。Agent回答或主题关闭不自动解决问题。
 
-## 更正、反馈与问题状态
+姓名和身份为学习者自述，不等于实名认证；实际GitHub发布账户另行保留。没有身份可以先学习；没有写权限时只整理待提交内容，不冒称保存。用户说不记录或私密时不发布，默认只留在当前对话。
 
-- 更正旧观点：新轮次使用`kind: revision`和原`entry_id`作为`target_id`，写明改变和理由。禁止覆盖前文。
-- 回应同伴：在自己文件里新增`feedback`或`disagreement`，`relates_to`放对方的`entry_id`；不改对方文件。
-- 更新自己的问题：新增`question_status`，`target_id`指向原问题，`state`可为`open`、`answered`、`deferred`、`discussed`。只根据本人明确表达更新；除`answered`外仍列入未解决问题。
-- 同一轮重试复用相同`interaction_id`，内容完全相同时不重复保存；不同内容使用新的修订轮次。
+## 文件归档
 
-不要只手工编辑Markdown可见正文，或只编辑末尾JSON。它们必须一致；追加请使用工具，历史修订通过新条目表达。CI会拒绝改写已合并的学员历史；同一天不同设备产生Git冲突时合并双方新增轮次，保留全部旧条目，再用工具渲染和校验。
-
-## 可见性与身份边界
-
-共享草稿保存在`cases/.../reflections/`，直到PR合并才进入默认共享教材；分支或PR一旦推送到公共仓库也可被公开访问。私密模式加`--private`，写到Git忽略的`.school/private/`，会前工具不会读取它。要求“不记录”时跳过写入。
-
-身份是自述标识，并非实名认证；Git提交作者、PR发起人和学习者标识不是同一字段。团队可以约定昵称映射，但不应因此推断单位或个人真实身份。已公开内容不能靠后来改为私密自动撤回，需单独处理原分支和历史。
+各案例`reflections/`继续保存归档后的学习记录，按学习者与日期命名，沿用旧1.0 Markdown+JSON注释格式及追加校验。归档必须保留线上原记录链接和interaction_id，汇总时去重。文件归档是学校维护工作，学员无需下载教材、建立档案文件或操作PR。原始反馈发布后即能参与线上学习。

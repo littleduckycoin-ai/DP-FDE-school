@@ -1,27 +1,19 @@
 # 审核与保护
 
-这所学校把“有权表达自己的看法”和“可以修改共同教材”分开处理。每个人可以贡献署名记录；共同教材及正式沉淀由维护者审核。
+学校分为线上即时讨论与经过审核的教材沉淀。每位学员可以留下署名思考；共享教材的修改由维护者审核。
 
-## 文件与仓库规则共同生效
+## 即时讨论
 
-[CODEOWNERS](../.github/CODEOWNERS)指定`@littleduckycoin-ai`审核基础案例、canon、patterns、原始资料以及工具和规则文件。普通`reflections/*.md`不设置CODEOWNER；每个reflections目录内的说明文件仍受保护。后续可由维护者通过PR添加合适的审核者。
+学习记录Issue及评论承载每轮思考、评价和问题，发布后即可在线阅读和会前汇总。实际发布账户、时间和URL来自GitHub，学习者标识与昵称由本人自述。修订通过追加表达，不覆盖旧观点。
 
-主分支保护配置为：要求PR，要求`school-checks`通过且分支基于最新主分支，受CODEOWNERS覆盖的文件要求所有者审核；普通记录PR不额外要求固定人数审批。要求解决PR讨论，禁止强制推送和删除主分支。管理员保留GitHub提供的绕过权限，用于明确授权的维护；这不是不可变存储。
+线上讨论可以归档到案例`reflections/`，保留原链接与稳定ID，汇总时去重。公共仓库不提供逐条私密访问；用户要求私密的内容不发布。
 
-CODEOWNERS文件本身不能阻止修改，必须同时启用分支保护中的代码所有者审核要求；其他fork或新仓库复制文件后也要自行配置。[GitHub代码所有者说明](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)。
+## 教材审核
 
-## 自动检查检查什么
+[CODEOWNERS](../.github/CODEOWNERS)指定`@littleduckycoin-ai`审核base、canon、patterns、原始资料、工具和规则。主分支要求PR、school-checks通过及受保护文件的CODEOWNER审核，禁止强制推送和删除主分支；管理员保留明确授权维护所需的GitHub例外权限。
 
-- 24个案例、144段问答、原PDF和图片数量、完整原文摘要及基础文件冻结摘要。
-- 数据字段、相对链接、案例目录、skill入口与记录格式一致性。
-- 学员记录的作者标识、条目编号、时间、引用页码与问题状态关联。
-- PR是否保留已存在的学习记录及历史条目；更正必须追加，不能删除或改写旧内容。
-- 记录重试、私密隔离、会前截止与固定Git版本读取等工具行为。
+CODEOWNERS与分支保护需要共同使用，单独放一个文件不会让教材只读。[GitHub代码所有者说明](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)。
 
-检查不能代替原文阅读、学员身份认证或内容审核。学员标识是本人自述，仓库不提供按文件的私人访问权限。PR发起人和实际学习者的对应关系由团队约定。
+canon与patterns从proposed开始；实际审核合并后，再引用真实review_pr标记accepted。基础事实须回到原访谈，学员观点须回到线上帖子或署名记录，未形成共识的地方保留分歧。
 
-## 正式内容的状态
-
-`canon/`和`patterns/`的新内容使用`proposed`。`accepted`需要真实的、已审核合并的`review_pr`链接；仅在本地填入字段不会产生审核。基础教材和沉淀中的访谈事实应指向原始出处；学员解释应指向署名记录。未形成共识的地方保留分歧，不通过改标题将其包装为共识。
-
-来源勘误需要维护者说明依据，并在同一PR中更新受保护的冻结摘要。任何试图改写他人观点或悄悄“修正”历史的内容都应退回，改为追加有作者的修订。
+CI检查24个案例、144段原访谈、基础文件摘要、链接、记录格式与已有文件历史。它不能认证学员真实身份，也不代表所有线上发言都经过内容审核。基础来源勘误必须有明确维护理由，并在受审改动中解释摘要更新。

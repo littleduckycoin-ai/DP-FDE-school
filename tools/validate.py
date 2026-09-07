@@ -60,6 +60,8 @@ integrity = read_json(ROOT / 'sources/integrity.json')
 expected = {x['id']: x for x in integrity['cases']}
 check(len(index['cases']) == 24, 'Index must contain 24 cases')
 check([x['id'] for x in index['cases']] == list(range(1, 25)), 'Case IDs must be unique and ordered')
+online = read_json(ROOT / 'data/online-school.json')
+check(online.get('mode') == 'online' and online.get('persist_local_materials') is False, 'School entry must use online sources')
 check(len(list((ROOT / 'cases').glob('*/base/case.md'))) == 24, 'Expected 24 Markdown cases')
 check(len(list((ROOT / 'cases').glob('*/base/case.json'))) == 24, 'Expected 24 JSON cases')
 catalog = (ROOT / 'cases/README.md').read_text(encoding='utf-8')
@@ -67,6 +69,9 @@ qa_count = 0
 figures = 0
 for item in index['cases']:
     cid = item['id']
+    online_urls = item.get('online_urls', {})
+    check(online_urls.get('raw_json') == online['raw_main_prefix'] + item['json_file'], f'{cid}: online JSON route mismatch')
+    check(online_urls.get('raw_markdown') == online['raw_main_prefix'] + item['markdown_file'], f'{cid}: online Markdown route mismatch')
     c = read_json(ROOT / item['json_file'])
     md = (ROOT / item['markdown_file']).read_text(encoding='utf-8')
     schema_check(c, schema, f'case {cid:02d}')
