@@ -1,0 +1,392 @@
+{
+  "schema_version": "2.1",
+  "prepared_date": "2026-09-07",
+  "case_count": 24,
+  "path_base": "repository_root",
+  "cases": [
+    {
+      "id": 1,
+      "learning_title": "把师傅经验变成培训闭环",
+      "original_title": "从师徒带教到AI辅助培训：FDE用AI破解制造业经验传承难题",
+      "industry": "零部件制造",
+      "learning_theme": "知识与专业工作台",
+      "one_sentence_intro": "FDE团队帮一家德国零部件工厂解决了老师傅快退休、新人反复问问题、培训进度看不清的麻烦，把调参数和处理异常的经验整理进知识库，再接到员工原来的培训平台里，让新人能边学边问、师傅能看到学到了哪一步，把经验传承变成了一套能持续运行的流程。",
+      "markdown_file": "cases/01/case.md",
+      "json_file": "cases/01/case.json",
+      "source_pdf_page_range": [
+        7,
+        14
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 2,
+      "learning_title": "从驻场运维发现审核瓶颈",
+      "original_title": "从人工审材料到自动化办件：FDE用AI提升车管所网办效率",
+      "industry": "政务网办",
+      "learning_theme": "流程执行与采用",
+      "one_sentence_intro": "FDE团队在车管所做系统运维时，发现工作人员每天都在人工看证件照片、核材料、填系统，于是把图片识别、信息提取和跨系统填报串起来，让正常业务自动往下走、异常再交给人，访谈中一单审核从约15分钟降到3—5分钟，日均办件量从约七八百件提高到1100件左右。",
+      "markdown_file": "cases/02/case.md",
+      "json_file": "cases/02/case.json",
+      "source_pdf_page_range": [
+        15,
+        24
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 3,
+      "learning_title": "让案件成为长期工作空间",
+      "original_title": "从案头工作到智能协作：FDE用AI优化诉讼律师的案件处理能力",
+      "industry": "诉讼法律服务",
+      "learning_theme": "知识与专业工作台",
+      "one_sentence_intro": "FDE团队帮处理复杂商事诉讼的律师解决案卷太多、人物和证据关系难梳理、每次问AI都要重讲背景的问题，把材料、关系图、检索和文书草稿放进同一个案件工作台，访谈中的一个14名被告案件把原本两三天的整理压到了一个晚上，让律师有更多时间判断策略和与客户沟通。",
+      "markdown_file": "cases/03/case.md",
+      "json_file": "cases/03/case.json",
+      "source_pdf_page_range": [
+        25,
+        33
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 4,
+      "learning_title": "让AI调度专业工具",
+      "original_title": "从人工研判到智能调度：FDE用AI重构城市规划研判流程",
+      "industry": "城市规划",
+      "learning_theme": "专业工具与计算",
+      "one_sentence_intro": "FDE团队帮城市规划院解决跨部门查规则、调地图数据、跑计算和拼报告太费时的问题，先选一个小片区，把真实数据、规划规定和GIS工具接到地图工作台里，让AI替规划师组织这些步骤，已跑通的试点把原本3—5天的综合报告整理压到约10—20分钟，最后仍由规划师推敲和决定。",
+      "markdown_file": "cases/04/case.md",
+      "json_file": "cases/04/case.json",
+      "source_pdf_page_range": [
+        34,
+        46
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 5,
+      "learning_title": "把达人运营串成业务链",
+      "original_title": "从大海捞针到全链路提效：FDE用AI重构TikTok达人建联与履约",
+      "industry": "跨境达人电商",
+      "learning_theme": "经营协同与价值",
+      "one_sentence_intro": "FDE团队帮一家做海外TikTok电商的企业，把人工找达人、从上万件商品里配货、催拍视频和翻表格看进度这些工作串起来，用AI先筛人配商品、给拍摄脚本，再由系统提醒履约和转交异常任务，试运行中合作达人的平均履约时间从约一个月缩短到18天，运营能把更多时间用来谈合作。",
+      "markdown_file": "cases/05/case.md",
+      "json_file": "cases/05/case.json",
+      "source_pdf_page_range": [
+        47,
+        56
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 6,
+      "learning_title": "优化结果必须让工人能执行",
+      "original_title": "从经验装车到智能规划：FDE用AI优化跨境物流装载效率",
+      "industry": "跨境物流装载",
+      "learning_theme": "专业工具与计算",
+      "one_sentence_intro": "FDE团队帮黑河中俄跨境物流解决货车装不满、装车靠老师傅、电脑排出的方案工人不好照做的问题，先量准车厢内部空间，再用装箱算法排货，把结果做成编号和截面装车图，原型测试装到了约99立方米、超过文中98方保本线，但把实际装车从约5小时降到2小时仍是预期目标。",
+      "markdown_file": "cases/06/case.md",
+      "json_file": "cases/06/case.json",
+      "source_pdf_page_range": [
+        57,
+        68
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 7,
+      "learning_title": "把个人AI能力变成团队方法",
+      "original_title": "从个人提效到组织能力：FDE用AI推动企业研发转型",
+      "industry": "基金公司内部研发",
+      "learning_theme": "流程执行与采用",
+      "one_sentence_intro": "FDE团队帮一家基金公司的研发团队解决了大家各用各的AI、文档和分工跟不上新工具的问题，通过五天半的现场培训和后续迭代，和产品、开发等角色一起做出可共用的需求说明文档与协作方法，让个人用AI逐步变成团队一起用AI，不过这家基金公司没有公开完整的提效或收益数字。",
+      "markdown_file": "cases/07/case.md",
+      "json_file": "cases/07/case.json",
+      "source_pdf_page_range": [
+        69,
+        77
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 8,
+      "learning_title": "把“找不到”追到采购损失",
+      "original_title": "从物料难找到精准定位：FDE用AI减少工业企业采购浪费",
+      "industry": "工业物料与ERP",
+      "learning_theme": "经营协同与价值",
+      "one_sentence_intro": "FDE团队帮一家海外工业企业处理“ERP里明明有这个零件却找不到”的问题，先清理物料的重复名称、描述和单位，再让员工用日常说法也能找到已有物料，把容易导致重复录入、买错买重和库存积压的环节连起来检查，并和客户建立损失核算方法，不过访谈没有公开具体节省了多少钱。",
+      "markdown_file": "cases/08/case.md",
+      "json_file": "cases/08/case.json",
+      "source_pdf_page_range": [
+        78,
+        87
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 9,
+      "learning_title": "把科研人员的时间还给科研",
+      "original_title": "从“表哥表姐”到智能执行：FDE用AI重构央国企财务流程效率",
+      "industry": "央企科研机构财务",
+      "learning_theme": "流程执行与采用",
+      "one_sentence_intro": "FDE团队帮一家央企科研机构把报销和财务处理里到处找审批、判断费用归属、反复填集团系统的工作接了起来，科研人员在钉钉发来发票后，AI整理相关信息、辅助判断和发现异常，再让自动化程序填报，最后逐步落地了10个财务相关场景，让科研人员少跑流程、财务少做重复操作。",
+      "markdown_file": "cases/09/case.md",
+      "json_file": "cases/09/case.json",
+      "source_pdf_page_range": [
+        88,
+        96
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 10,
+      "learning_title": "对账把被忽略的价值找回来",
+      "original_title": "从人工核对到智能对账：FDE用AI让线下零售对账又快又准",
+      "industry": "线下零售",
+      "learning_theme": "经营协同与价值",
+      "one_sentence_intro": "FDE团队帮一家在商场开店的消费品企业解决门店账和商场结算单要人工反复核对的问题，用图片识别和定时流程先做一轮对账，把差异交给店员确认，在上海部分门店把每个周期约一两个人天的核对压到几个小时，也找出了过去因核对太麻烦而被忽略的收款差异。",
+      "markdown_file": "cases/10/case.md",
+      "json_file": "cases/10/case.json",
+      "source_pdf_page_range": [
+        97,
+        107
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 11,
+      "learning_title": "把开发能力送进客户环境",
+      "original_title": "从文件散乱到随取随用：FDE用AI帮外贸企业把资料变成可用资产",
+      "industry": "外贸礼品",
+      "learning_theme": "知识与专业工作台",
+      "one_sentence_intro": "FDE团队帮一家十几人的外贸礼品公司处理图片模板散在各台电脑、找客户旧资料很费劲的问题，先整理网络和文件关系，再把开发规范与任务包送到客户自己的Codex里继续适配；现场一个产品刻度查询约10分钟就查清，老板随后提出更多需求，但整个项目当时还在第一阶段测试。",
+      "markdown_file": "cases/11/case.md",
+      "json_file": "cases/11/case.json",
+      "source_pdf_page_range": [
+        108,
+        120
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 12,
+      "learning_title": "从个人生图到公司级素材生产",
+      "original_title": "从人工盯图到公司级生产：FDE用AI重塑鞋服电商素材工作流",
+      "industry": "鞋服帽电商",
+      "learning_theme": "知识与专业工作台",
+      "one_sentence_intro": "FDE团队帮一家鞋服帽电商企业解决设计师各自用AI出图、反复调提示词、商品细节容易变样和素材散在个人电脑的问题，把商品、图片视频生成、质量检查和素材管理连成公司共用的流程，开始让内容能统一保存和复用，不过当时仍在内部试用，尚未给出稳定的产能或成本改善数字。",
+      "markdown_file": "cases/12/case.md",
+      "json_file": "cases/12/case.json",
+      "source_pdf_page_range": [
+        121,
+        130
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 13,
+      "learning_title": "先避免重复建设，再谈AI",
+      "original_title": "从纸质流程到数据驱动：FDE用AI推动传统消防维保企业数字化转型",
+      "industry": "消防维保",
+      "learning_theme": "流程执行与采用",
+      "one_sentence_intro": "FDE团队帮一家消防维保公司梳理师傅现场检查后还要写表、打印、发微信，老板却看不清进度的问题，发现新建大系统会和监管软件重复录入，就改用现有飞书从小表单和流程做起，先把工作记录留住、让进度可见，也让公司放弃了原计划约10万元但不适合实际流程的系统采购；项目仍在推进。",
+      "markdown_file": "cases/13/case.md",
+      "json_file": "cases/13/case.json",
+      "source_pdf_page_range": [
+        131,
+        137
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 14,
+      "learning_title": "系统做出来之后，组织要接得住",
+      "original_title": "从技术交付到业务自驱：FDE用AI推动国企工作流程真正落地",
+      "industry": "省属国企电商业务",
+      "learning_theme": "流程执行与采用",
+      "one_sentence_intro": "FDE团队帮一家做多品类电商的国企解决业务越来越多、专家经验留不下来、建了AI平台大家却不常用的问题，改成和业务、人力部门一起拆具体岗位流程，先让AI辅助审合同、再带员工自己做小工具，让原本两人的法务团队承接了原计划还需招人的工作，也开始出现员工主动开发应用的变化。",
+      "markdown_file": "cases/14/case.md",
+      "json_file": "cases/14/case.json",
+      "source_pdf_page_range": [
+        138,
+        147
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 15,
+      "learning_title": "把“文案味道”变成可迭代流程",
+      "original_title": "从经验写稿到稳定量产：FDE用AI重构本地生活短视频内容生产",
+      "industry": "本地生活短视频",
+      "learning_theme": "知识与专业工作台",
+      "one_sentence_intro": "FDE团队帮一家给多地餐饮商家做抖音代运营的公司解决高峰每天要写两三百条文案、好写手忙不过来、AI套模板又太生硬的问题，把门店、菜品、活动和优秀运营的经验拆成输入与生成流程，再由人审核拍摄脚本，让内容有了更稳定的基础质量，也能提前生产来缓解每天的工作高峰。",
+      "markdown_file": "cases/15/case.md",
+      "json_file": "cases/15/case.json",
+      "source_pdf_page_range": [
+        148,
+        159
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 16,
+      "learning_title": "把会回答的Agent做成可靠系统",
+      "original_title": "从人工分析到分钟级洞察：FDE用AI重构电信网络数据分析",
+      "industry": "电信网络分析",
+      "learning_theme": "专业工具与计算",
+      "one_sentence_intro": "FDE团队帮一家美国大型电信运营商解决分析师查基站故障、反复写SQL和改报表很耗时的问题，把数据获取、分析和结果检查做成可反复使用的Agent系统，让员工继续通过聊天追问网络情况，很多原来按天做的分析可以先在几分钟到几小时内得到结果，再由分析师做最后确认。",
+      "markdown_file": "cases/16/case.md",
+      "json_file": "cases/16/case.json",
+      "source_pdf_page_range": [
+        160,
+        168
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 17,
+      "learning_title": "让非标报价回到企业真实成本",
+      "original_title": "从老师傅报价到AI深度协同：FDE用AI重构非标制造售前链路",
+      "industry": "非标柔性制造",
+      "learning_theme": "专业工具与计算",
+      "one_sentence_intro": "FDE团队帮一家做非标制造的企业解决客户图纸一来就要等老师傅看需求、选工艺、算成本，报价慢又容易算偏的问题，让AI先把图纸信息整理出来，再按企业自己的物料、供应商和报价规则匹配，交给人校准后再对外报价；受访者称相关工作量减少了50%以上，员工腾出时间去跟客户和项目。",
+      "markdown_file": "cases/17/case.md",
+      "json_file": "cases/17/case.json",
+      "source_pdf_page_range": [
+        169,
+        180
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 18,
+      "learning_title": "AI转型先补数据与团队基础",
+      "original_title": "从纸质台账到AI经营：一家生物科技上市公司的0帧起手数智化",
+      "industry": "生物科技销售经营",
+      "learning_theme": "经营协同与价值",
+      "one_sentence_intro": "FDE团队帮一家生物科技公司的两百多人销售团队解决客户资料散在人手里、经营数据总是慢一拍、新人培训拖得久的问题，先补CRM和数据汇总，再做经营分析、AI陪练与考试，把新人培训从接近两个月缩到约三周，也减少了老销售筛简历和面试准备的重复工作；这次改造主要发生在销售管理环节。",
+      "markdown_file": "cases/18/case.md",
+      "json_file": "cases/18/case.json",
+      "source_pdf_page_range": [
+        181,
+        188
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 19,
+      "learning_title": "把审核前置到研发协作中",
+      "original_title": "从人工排队到审核前置：FDE用AI重构消费品研发协同与包装审核",
+      "industry": "消费品研发与包装",
+      "learning_theme": "专业工具与计算",
+      "one_sentence_intro": "FDE团队帮消费品企业解决新产品包装排队审核、研发和渠道经验散在人脑里的问题，先观察真实协作，再和审核人员一起把检查事项拆清楚，用识别工具读取包装、用固定程序算营养数值，设计稿提交后先做预审、疑难处交给人，让专家少查低级错误，也把每次驳回和修改的经验留下来。",
+      "markdown_file": "cases/19/case.md",
+      "json_file": "cases/19/case.json",
+      "source_pdf_page_range": [
+        189,
+        199
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 20,
+      "learning_title": "把ERP数据变成可解释的经营状态",
+      "original_title": "从看不清订单到看清经营：FDE用AI让制造企业的经营流程更透明",
+      "industry": "汽车零部件供应链",
+      "learning_theme": "经营协同与价值",
+      "one_sentence_intro": "FDE团队帮一家汽车维修零部件供应商解决ERP里有订单、采购和库存，老板却仍要到处问进度、查付款缘由的问题，在原ERP上把这些记录重新关联，做成经营看板和飞书异常提醒，让未收齐的货和应付款对应的业务更容易追踪；系统刚上线，尚不能证明利润或成本已经改善。",
+      "markdown_file": "cases/20/case.md",
+      "json_file": "cases/20/case.json",
+      "source_pdf_page_range": [
+        200,
+        209
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 21,
+      "learning_title": "专业初稿要保留可控的调整空间",
+      "original_title": "从人工绘图到智能协作：FDE用AI重塑建筑图纸交付流程",
+      "industry": "建筑消防设计",
+      "learning_theme": "专业工具与计算",
+      "one_sentence_intro": "FDE团队帮建筑设计人员解决消防施工图里要逐个房间布喷头、消火栓，还得反复查规范和随平面改图的问题，用专门的CAD解析模型和规则引擎先生成可调整的图纸初稿，让大型项目约30分钟就能先出一版，再由设计师改参数、审结果；这30分钟不包含最终专业审核和完整交付。",
+      "markdown_file": "cases/21/case.md",
+      "json_file": "cases/21/case.json",
+      "source_pdf_page_range": [
+        210,
+        218
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 22,
+      "learning_title": "让库存真正影响补货与广告",
+      "original_title": "从库存割裂到业务联动：FDE用AI打通跨境电商的库存、补货与广告决策",
+      "industry": "东南亚跨境服装电商",
+      "learning_theme": "经营协同与价值",
+      "one_sentence_intro": "FDE团队帮一个做东南亚服装电商的十几人团队解决几千个SKU的库存、物流照片、补货和广告各管各的问题，把原SaaS数据接到飞书，让AI先识别照片、按原规则整理补货单，再让人确认，并把库存变化连到广告调整上，物流图片和数据处理从每天四五小时缩到一小时以内；后续利润效果没有完整跟踪。",
+      "markdown_file": "cases/22/case.md",
+      "json_file": "cases/22/case.json",
+      "source_pdf_page_range": [
+        219,
+        228
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 23,
+      "learning_title": "为老板接住被放弃的长尾需求",
+      "original_title": "从老板报价到长尾承接：FDE用AI打通工程租赁获客与报价",
+      "industry": "工程设备租赁",
+      "learning_theme": "经营协同与价值",
+      "one_sentence_intro": "FDE团队帮一家工程设备租赁企业解决老板忙着大客户、顾不上零散小订单的问题，把询价先按大小和复杂程度分开，让系统收集车型、操作员、油费、距离和作业要求，算出报价区间并做初步沟通，复杂订单再交回老板，让过去容易漏掉的小客户开始有人接；项目才推进一个多月，新增收入还没有可靠统计。",
+      "markdown_file": "cases/23/case.md",
+      "json_file": "cases/23/case.json",
+      "source_pdf_page_range": [
+        229,
+        236
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    },
+    {
+      "id": 24,
+      "learning_title": "每个经营数字都能回到原始数据",
+      "original_title": "从发货到动销：FDE用AI打通跨境快消的海外数据断层",
+      "industry": "跨境快消与经销商",
+      "learning_theme": "经营协同与价值",
+      "one_sentence_intro": "FDE团队帮一家通过经销商卖到中国和越南的澳洲奶酪企业解决总部只看得见发货、看不清终端卖了多少和市场费用是否合理的问题，把经销商的表格、票据和图片整理成统一口径，接进原系统，异常带着原始依据交给人审核，让周会少花时间对数；访谈称费用问题发现比例从不到10%提高到约30%，这些数字做过脱敏。",
+      "markdown_file": "cases/24/case.md",
+      "json_file": "cases/24/case.json",
+      "source_pdf_page_range": [
+        237,
+        246
+      ],
+      "source_qa_count": 6,
+      "learning_time_minutes": 10
+    }
+  ]
+}

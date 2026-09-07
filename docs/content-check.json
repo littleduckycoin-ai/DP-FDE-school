@@ -1,0 +1,254 @@
+{
+  "prepared_date": "2026-09-07",
+  "case_count": 24,
+  "per_case_formats": [
+    "Markdown",
+    "JSON"
+  ],
+  "full_qa_count": 144,
+  "original_image_files": 74,
+  "editorial_flow_diagrams": 24,
+  "preserved_from_previous_library": "15组结构字段、完整问答与逐页文字；路径按仓库重新映射，过往PPT仅保留页码参考",
+  "measurement": "汉字数按U+3400–U+9FFF计数；新旧均排除完整访谈与原图部分；包含学习标题、表格与讨论提示",
+  "old_learning_cjk_characters": 30780,
+  "new_learning_cjk_characters": 72288,
+  "per_case": [
+    {
+      "id": 1,
+      "old_learning_cjk_characters": 1258,
+      "new_learning_cjk_characters": 3094,
+      "growth_ratio": 2.46,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 2,
+      "old_learning_cjk_characters": 1254,
+      "new_learning_cjk_characters": 3039,
+      "growth_ratio": 2.42,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 3,
+      "old_learning_cjk_characters": 1299,
+      "new_learning_cjk_characters": 3133,
+      "growth_ratio": 2.41,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 4,
+      "old_learning_cjk_characters": 1224,
+      "new_learning_cjk_characters": 3041,
+      "growth_ratio": 2.48,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 5,
+      "old_learning_cjk_characters": 1239,
+      "new_learning_cjk_characters": 2992,
+      "growth_ratio": 2.41,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 6,
+      "old_learning_cjk_characters": 1238,
+      "new_learning_cjk_characters": 2938,
+      "growth_ratio": 2.37,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 7,
+      "old_learning_cjk_characters": 1239,
+      "new_learning_cjk_characters": 2901,
+      "growth_ratio": 2.34,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 8,
+      "old_learning_cjk_characters": 1298,
+      "new_learning_cjk_characters": 3011,
+      "growth_ratio": 2.32,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 9,
+      "old_learning_cjk_characters": 1283,
+      "new_learning_cjk_characters": 3004,
+      "growth_ratio": 2.34,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 10,
+      "old_learning_cjk_characters": 1244,
+      "new_learning_cjk_characters": 2924,
+      "growth_ratio": 2.35,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 11,
+      "old_learning_cjk_characters": 1277,
+      "new_learning_cjk_characters": 2991,
+      "growth_ratio": 2.34,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 12,
+      "old_learning_cjk_characters": 1263,
+      "new_learning_cjk_characters": 2948,
+      "growth_ratio": 2.33,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 13,
+      "old_learning_cjk_characters": 1259,
+      "new_learning_cjk_characters": 3005,
+      "growth_ratio": 2.39,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 14,
+      "old_learning_cjk_characters": 1314,
+      "new_learning_cjk_characters": 3077,
+      "growth_ratio": 2.34,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 15,
+      "old_learning_cjk_characters": 1294,
+      "new_learning_cjk_characters": 2995,
+      "growth_ratio": 2.31,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 16,
+      "old_learning_cjk_characters": 1304,
+      "new_learning_cjk_characters": 3029,
+      "growth_ratio": 2.32,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 17,
+      "old_learning_cjk_characters": 1341,
+      "new_learning_cjk_characters": 3081,
+      "growth_ratio": 2.3,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 18,
+      "old_learning_cjk_characters": 1333,
+      "new_learning_cjk_characters": 3084,
+      "growth_ratio": 2.31,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 19,
+      "old_learning_cjk_characters": 1333,
+      "new_learning_cjk_characters": 3112,
+      "growth_ratio": 2.33,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 20,
+      "old_learning_cjk_characters": 1290,
+      "new_learning_cjk_characters": 2971,
+      "growth_ratio": 2.3,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 21,
+      "old_learning_cjk_characters": 1314,
+      "new_learning_cjk_characters": 3008,
+      "growth_ratio": 2.29,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 22,
+      "old_learning_cjk_characters": 1243,
+      "new_learning_cjk_characters": 2885,
+      "growth_ratio": 2.32,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 23,
+      "old_learning_cjk_characters": 1316,
+      "new_learning_cjk_characters": 2989,
+      "growth_ratio": 2.27,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    },
+    {
+      "id": 24,
+      "old_learning_cjk_characters": 1323,
+      "new_learning_cjk_characters": 3036,
+      "growth_ratio": 2.29,
+      "original_qa_count": 6,
+      "original_qa_preserved_exactly": true,
+      "original_page_text_preserved_exactly": true
+    }
+  ],
+  "growth_ratio": 2.35,
+  "edition": "generic",
+  "schema_version": "2.1",
+  "validation": {
+    "status": "passed",
+    "case_files": {
+      "markdown": 24,
+      "json": 24
+    },
+    "full_qa_verified": 144,
+    "source_figures": 50,
+    "original_image_files": 74,
+    "editorial_flow_diagrams": 24,
+    "relative_links_checked": 921,
+    "schema_keywords_checked": true,
+    "pdf_sha256": "39b4a6cd7271739c380d6ca587896cf563f0a5a6c8cc8f9c0945fbb23905b84d",
+    "errors": [],
+    "source_pdf_embedded_images_ocr_checked": 78,
+    "ocr_empty_images_visually_reviewed": 5,
+    "audience_specific_reference_matches": 0
+  }
+}
