@@ -1,48 +1,67 @@
-# 线上学习记录
+# Reflection知识文件格式
 
-每位学习者、每个案例复用一个学习记录Issue，每轮新增评论。标题建议为`[学习记录] case-04-urban-planning-tools / alice`。发布后其他学习者和会前Agent可直接在线读取。
+学习中的评论、问题、评价、思考、分歧、应用设想和修订都直接保存为案例知识文件：
 
-## 一轮记录的内容
+`cases/<case-id>/reflections/<learner-id>-YYYY-MM-DD.md`
+
+同一学习者、同一案例、同一天复用一个文件，每轮对话追加一个interaction。不同案例分别写文件。文件合并进main后，后续学习者和会前Agent可直接在线读取。学习反馈不使用GitHub Issue。
+
+## 文件身份
+
+文件开头的YAML字段和末尾的`school-record-v1` JSON必须一致：
 
 | 字段 | 含义 |
 |---|---|
-| `case_id` | 案例索引中的稳定案例标识 |
-| `learner_id`、`display_name` | 用户自述的稳定标识和公开昵称 |
-| `interaction_id` | 本次会话的稳定轮次ID；同轮重试不换ID |
-| `contributions` | 用户真实的思考、评价、问题、应用设想、分歧、反馈或修订 |
-| `capture`、`confirmation` | 原话/概括；自动记录captured或用户明确确认confirmed |
-| `source_refs`、`target_id`、`relates_to` | 案例页码、被修订的记录、同伴记录关联 |
-| `agent_feedback`、`next_steps` | 单独存放的Agent建议；不代表学员认同或承诺 |
-| GitHub回执 | 实际发布账户、帖子/评论ID、创建和修改时间、线上URL |
+| `schema_version` | 当前为`1.0` |
+| `case_id` | 案例索引中的稳定标识 |
+| `learner_id`、`display_name` | 学员自述的稳定标识与公开昵称 |
+| `identity_source` | 固定为`self_declared` |
+| `study_date` | 文件日期，格式为`YYYY-MM-DD` |
+| `visibility` | 公开知识文件固定为`shared_draft` |
+| `interactions` | 按时间追加的学习轮次，不得删除或改写旧轮次 |
 
-内容类型沿用`thought`、`evaluation`、`question`、`application`、`disagreement`、`feedback`、`revision`和`question_status`。条目ID由`case_id:learner_id:interaction_id:序号`组成。修订和问题状态指向原条目；反馈同伴放在自己的主题，不替对方改观点。
+文件名中的案例、学习者和日期必须与结构化字段一致。公开仓库不保存private记录。
 
-## 给Agent的可复制正文结构
+## 每轮interaction
 
-下面仅为格式示例，不是任何人的真实记录。替换实际作者、案例与用户表达后发布：
+| 字段 | 含义 |
+|---|---|
+| `interaction_id` | 稳定轮次ID；同一次重试不换ID |
+| `summary` | 这一轮讨论的简短主题 |
+| `contributions` | 学员真实表达，可有多条 |
+| `agent_feedback` | Agent建议，与学员观点分开 |
+| `next_steps` | 待验证建议，不代表学员承诺 |
+| `created_at` | 含时区的ISO 8601时间 |
 
-```text
-案例：case-04-urban-planning-tools
-学习者：alice｜小艾（本人自述）
-轮次：s-example-t01
-记录方式：自动概括，可追加更正
+贡献类型为`thought`、`evaluation`、`question`、`application`、`disagreement`、`feedback`、`revision`和`question_status`。每条还包括：
 
-学员问题：［用户实际提出的问题］
-学员思考/评价：［用户实际表达的判断；没有就不填］
-原文依据：［案例、PDF物理页与线上链接；尚未核实就明确说明］
-Agent建议：［与学员观点分开］
-```
+- `text`：学员原话或忠实概括。
+- `capture`：`verbatim`或`paraphrase`。
+- `confirmation`：自动记录用`captured`；学员明确确认后才能用`confirmed`。
+- `source_refs`：案例依据，含case、原PDF物理页和说明；没有依据时用空数组。
+- `entry_id`：`case_id:learner_id:interaction_id:序号`，序号从01开始。
+- `relates_to`：关联的同伴条目ID；没有时用空数组。
 
-需要机器提取时，可在正文末尾附`school-turn-v1` JSON注释。字段为`schema_version: "1.1"`、`case_id`、`learner_id`、`display_name`、`identity_source: "self_declared"`及`interaction`；interaction沿用原记录工具的`interaction_id/summary/contributions/agent_feedback/next_steps`字段。可见正文必须与结构化内容表达一致。
+`revision`用`target_id`指向自己的原条目。`question_status`还要提供`state`，只能是`open`、`answered`、`deferred`或`discussed`。只有提问者明确确认answered，问题才算解决。
 
-使用网页[学习记录表单](https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml)提交的普通文字同样有效，不强制人类写JSON。Agent应读取表单中的案例、学习者标识、昵称与思考问题，保留原文和发布者信息。
+## 追加和提交规则
 
-## 每轮追加，保留变化
+1. 写入前读取main上的目标文件，也检查同一文件是否已有开放PR。
+2. 同一`interaction_id`且内容一致时不重复写；内容变化时创建新的修订interaction。
+3. 新文件从最新main建立reflection分支；更新文件必须携带最新blob SHA。遇到冲突先重新读取，保留所有已有interaction。
+4. 一个学员当天在一个案例中复用同一分支和PR。PR标题为`reflection: <case-id> / <learner-id> / <date>`。
+5. GitHub返回commit或PR链接后才叫“已上传”；PR合并进main后才叫“已进入共享知识库”。
 
-同一轮重试先查已有interaction_id，已发布就返回原链接。不同内容追加新轮次；更正引用原记录并说明变化。`question_status`只有提出者明确表示后才可更新为`open/answered/deferred/discussed`，只有answered代表已解决。Agent回答或主题关闭不自动解决问题。
+普通reflection文件不要求CODEOWNER审核，但必须通过`school-checks`。历史文件只能追加，CI会拒绝删除或改写已有轮次。
 
-姓名和身份为学习者自述，不等于实名认证；实际GitHub发布账户另行保留。没有身份可以先学习；没有写权限时只整理待提交内容，不冒称保存。用户说不记录或私密时不发布，默认只留在当前对话。
+## 公开范围和身份
 
-## 文件归档
+学习者身份由本人自述，不等于实名认证；实际GitHub提交账户由commit和PR另行保留。用户说私密、不记录，或内容含未获授权的敏感信息时不上传。Agent只能记录用户实际表达，不能把自己的解释写成学员观点。
 
-各案例`reflections/`继续保存归档后的学习记录，按学习者与日期命名，沿用旧1.0 Markdown+JSON注释格式及追加校验。归档必须保留线上原记录链接和interaction_id，汇总时去重。文件归档是学校维护工作，学员无需下载教材、建立档案文件或操作PR。原始反馈发布后即能参与线上学习。
+没有GitHub写入能力时，Agent应提供准确目标路径、完整Markdown和该案例`reflections/`目录的GitHub“Add file”入口，让学员登录后提交文件或PR。不要回退到Issue，也不要在没有成功回执时声称已经保存。
+
+## 可读正文与机器数据
+
+正文要让人能直接阅读：列出每轮时间、记录编号、内容类型、学员原话或概括、案例出处，以及分开的Agent反馈和下一步。文件末尾只放一个`school-record-v1` JSON注释。正文必须由同一份JSON渲染，不能出现两套含义不同的内容。
+
+维护环境中的`tools/school.py`定义了精确校验和渲染规则；在线Agent无需让学员运行该工具，但生成的文件必须符合相同结构。

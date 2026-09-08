@@ -1,7 +1,9 @@
-# case-21-fire-design-drafts｜线上学习记录
+# case-21-fire-design-drafts｜署名学习知识
 
-[查看该案例的在线讨论](https://github.com/littleduckycoin-ai/DP-FDE-school/issues?q=is%3Aissue%20%22case-21-fire-design-drafts%22) · [提交思考与问题](https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml)
+[查看本案例全部reflection](https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-21-fire-design-drafts/reflections) · [在网页新建知识文件](https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-21-fire-design-drafts/reflections)
 
-同一学员、同一案例复用一个学习记录Issue，每轮追加评论。帖子保留学习者标识、昵称、问题、评价、思考、修订及原文出处；发布后即可在线读取，不要求先合并为教材。
+本案例的评论、问题、评价、思考、分歧、应用设想和修订都保存在本目录的Markdown知识文件中，不使用GitHub Issue。
 
-本目录也可保留已归档的署名记录。Agent汇总时同时读取线上讨论与归档，按原链接或稳定ID去重。身份和GitHub写入连接仅在发布时需要，不妨碍先学习。[记录格式](../../../docs/reflection-format.md) · [返回案例](../README.md)
+文件按<learner-id>-YYYY-MM-DD.md命名；同一学员、同一案例、同一天逐轮追加interaction。GitHub返回commit或PR链接表示已上传，合并进main后才进入共享知识库。普通reflection文件无需CODEOWNER审核，但必须通过school-checks，历史内容只能追加。
+
+Agent应按[记录格式](../../../docs/reflection-format.md)创建或更新文件并复用同一PR；只能读时给出准确路径、完整Markdown和上面的网页入口。身份和写入权限只在公开提交时需要，不妨碍先学习。[返回案例](../README.md)

@@ -1,8 +1,8 @@
 ## 这次贡献什么
 
-类型：学习记录归档 / 会前资料 / 会议决定 / canon提案 / pattern提案 / 教材勘误 / 仓库维护。
+类型：reflection学习记录 / 会前资料 / 会议决定 / canon提案 / pattern提案 / 教材勘误 / 仓库维护。
 
-日常学习反馈直接使用线上学习记录Issue及评论；本模板用于需要写入教材文件的改动。
+日常学习反馈直接写入对应案例的`reflections/<learner-id>-YYYY-MM-DD.md`，每轮只追加interaction。
 
 案例编号、学习者标识或会议标识：
 
