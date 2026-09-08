@@ -1,7 +1,7 @@
-"""Maintenance-only file archives and legacy meeting packs. Stdlib only.
+"""Maintenance helpers for reflection knowledge files and meeting packs. Stdlib only.
 
 The learner-facing school reads live online sources. This tool is not a student
-setup requirement, and its brief command does not cover unarchived online Issues.
+setup requirement; its record format is also used by online reflection files.
 """
 import argparse
 from contextlib import contextmanager
@@ -96,7 +96,7 @@ def render_record(record):
     meta = {k:record[k] for k in ['schema_version','case_id','learner_id','display_name','identity_source','study_date','visibility']}
     lines = ['---']+[k+': '+json.dumps(v,ensure_ascii=False) for k,v in meta.items()]+['---','',
         f'# {record["display_name"]}｜{record["study_date"]}｜学习记录','',
-        f'学习者标识：`{record["learner_id"]}`。身份由学习者自述；文件归档不代表观点已获课程审核。','',
+        f'学习者标识：`{record["learner_id"]}`。身份由学习者自述；该知识文件不代表观点已获课程审核。','',
         f'[基础案例](../../../cases/{record["case_id"]}/base/case.md)','']
     for turn in record['interactions']:
         lines += [f'## {turn["created_at"]}｜{turn["interaction_id"]}','']

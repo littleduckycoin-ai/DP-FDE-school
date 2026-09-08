@@ -18,7 +18,7 @@
 
 > 请在线读取 https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/START_HERE.md ，按照其中的线上教学规则带我学习。每轮需要资料时读取线上当前版本，不建立本地教材副本。先用10分钟带我学习案例04，先讲清项目，再围绕我的判断展开讨论，并给出出处。
 
-[安装skill](INSTALL_SKILL.md) · [直接开始学习](START_HERE.md) · [24个案例](cases/README.md) · [学习方法](HOW_TO_LEARN.md) · [在线学习记录](https://github.com/littleduckycoin-ai/DP-FDE-school/issues?q=is%3Aissue+label%3Aschool-reflection) · [线上反馈入口](https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml)
+[安装skill](INSTALL_SKILL.md) · [直接开始学习](START_HERE.md) · [24个案例](cases/README.md) · [学习方法](HOW_TO_LEARN.md) · [如何留下思考](docs/contributing.md)
 
 ## 一所持续生长的学校
 
@@ -26,7 +26,7 @@
 flowchart LR
   A[学员发链接和学习目标] --> B[Agent在线读取相关资料]
   B --> C[讲解、追问与讨论]
-  C --> D[署名反馈进入线上记录]
+  C --> D[署名反馈写入案例reflections]
   D --> E[会前实时汇总问题与分歧]
   E --> F[审核后沉淀拆解与模式]
   F --> B
@@ -35,8 +35,7 @@ flowchart LR
 | 在线资料 | 学习时如何使用 |
 |---|---|
 | `cases/<case-id>/base/` | 24个基础案例：口语化简介、行业约束、解法形成、交付与成效、完整访谈和原图 |
-| 学习记录Issues及评论 | 每位学员的思考、评价、问题和修订；发布后即可在线读取，无需等待教材合并 |
-| `cases/<case-id>/reflections/` | 该案例的在线讨论入口，以及已归档的署名学习记录 |
+| `cases/<case-id>/reflections/` | 每位学员的署名知识文件，保存思考、评价、问题、分歧和修订 |
 | `cases/<case-id>/canon/` | 经PR审核的案例拆解；待审与已审版本分开 |
 | `patterns/` | 跨至少两个案例的方法、适用边界与反例 |
 | `meetings/` | 已发布的会前资料、Agent整理和实际确认的会议决定 |
@@ -45,9 +44,9 @@ flowchart LR
 
 访谈事实、教材分析、学员观点和Agent建议分别标明。相近提问不等于共识，Agent给答案不等于学员的问题已解决；原文不足时明确说明。
 
-学习者可以先匿名阅读，需要署名反馈时再提供稳定标识和昵称。学员首次明确授权后，具备GitHub写入能力的Agent逐轮追加线上记录，返回实际记录链接。没有写入连接时继续教学，并提供可直接提交的文字与线上入口；不能声称已保存。
+学习者可以先匿名阅读，需要署名反馈时再提供稳定标识和昵称。首次明确授权后，具备GitHub写入能力的Agent把每轮表达追加到对应案例的reflection文件，并复用同一分支和PR。没有写入连接时继续教学，给出准确路径、完整Markdown和网页提交入口；不能声称已保存。
 
-案例教学以当轮线上读取为准；在线反馈发布状态与正式教材审核状态分开。反馈进入Issues即可参与讨论和会前整理，canon与patterns仍须PR审核。公共记录应使用可公开的昵称和内容。
+案例教学以当轮线上读取为准。reflection是署名学习知识，合并后即可用于后续学习和会前整理；它仍是个人表达。canon与patterns须经过PR审核才是正式知识。公共记录应使用适合公开的昵称和内容。
 
 ## 给Agent与维护者
 

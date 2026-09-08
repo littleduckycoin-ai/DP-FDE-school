@@ -16,21 +16,21 @@
 
 1. 让Agent在线打开上面的链接，读取教学规则与案例索引。
 2. 告诉它想学什么、可用时间或当前疑问。仅阅读无需学习者身份或GitHub写权限。
-3. 想留下署名反馈时再说：“我的学习者标识是alice，昵称小艾；请把本次学习中我的思考和问题逐轮记到学校的线上学习记录里。”将示例名称换成自己的。
+3. 想留下署名反馈时再说：“我的学习者标识是alice，昵称小艾；请把本次学习中我的思考和问题逐轮追加到对应案例的reflections知识文件。”将示例名称换成自己的。
 
-具备GitHub写入连接的Agent收到授权后可直接追加线上记录。若当前Agent只能读，它会先给出整理好的文字和[线上提交入口](https://github.com/littleduckycoin-ai/DP-FDE-school/issues/new?template=learning-note.yml)，由你在GitHub登录后提交。记录成功应有可打开的线上链接。没有写入能力也可以继续学习。
+具备GitHub写入连接的Agent收到授权后，会创建或更新`cases/<case-id>/reflections/<learner-id>-YYYY-MM-DD.md`，复用同一分支和PR。若当前Agent只能读，它会给出准确路径、完整Markdown和该案例目录的GitHub“Add file”入口，由你登录后提交文件或PR。上传成功应有可打开的commit或PR链接；合并进main后才算进入共享知识库。没有写入能力也可以继续学习。
 
 ## 日常直接这样说
 
 > 继续在线读取案例04的相关材料，解释你刚才判断的依据，并给我原访谈出处。
 
-> 看看同学对案例06有什么不同看法。我的观点是：……。请把我的反馈追加到我自己的线上记录。
+> 看看同学对案例06有什么不同看法。我的观点是：……。请把我的反馈追加到案例06中我的reflection文件。
 
 > 我修订刚才的观点：……。保留旧记录并追加修订。这个问题暂时仍未解决。
 
-> 实时读取学校线上案例01、04、06的学习记录，汇总开放问题、分歧与建议讨论顺序，保留作者和原记录链接。
+> 实时读取学校线上案例01、04、06的reflections知识文件，汇总开放问题、分歧与建议讨论顺序，保留作者和原文件链接。
 
-[学校主页](https://github.com/littleduckycoin-ai/DP-FDE-school) · [案例目录](https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases) · [大家的学习记录](https://github.com/littleduckycoin-ai/DP-FDE-school/issues?q=is%3Aissue+label%3Aschool-reflection)
+[学校主页](https://github.com/littleduckycoin-ai/DP-FDE-school) · [案例目录](https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases) · [如何留下思考](https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/docs/contributing.md)
 
 ## Agent从这里继续
 

@@ -1,6 +1,6 @@
 ---
 name: school-guide
-description: 学习或讨论FDE案例时使用。实时读取FDE AI School线上案例开展教学，判断并追加获授权的署名思考与问题，汇总同伴反馈，并起草待审核的拆解与模式。
+description: 学习或讨论FDE案例时使用。实时读取FDE AI School线上案例开展教学，把获授权的署名思考、评价和问题追加为对应案例reflections中的知识文件，汇总同伴反馈，并起草待审核的拆解与模式。
 ---
 
 # School Guide入口
