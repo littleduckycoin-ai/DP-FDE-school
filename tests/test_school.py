@@ -128,6 +128,8 @@ class SchoolWorkflowTests(unittest.TestCase):
             school.append_record(self.root,'01',packet)
         result=self.add(source_refs=[{'case_id':'01','pdf_pages':[2],'note':'Verified fixture page'}])
         self.assertEqual(self.read(result)['interactions'][0]['contributions'][0]['source_refs'][0]['case_number'],1)
+        rendered=(self.root/result['path']).read_text(encoding='utf-8')
+        self.assertIn('https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=2',rendered)
 
     def test_agent_feedback_does_not_close_question(self):
         self.profile()

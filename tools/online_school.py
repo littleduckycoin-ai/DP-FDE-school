@@ -119,9 +119,19 @@ class OnlineSchool:
         value = json.loads(self.file(row['json_file'], commit))
         if value['identity']['case_id'] != row['case_id']:
             raise OnlineReadError('Online case identity differs from its index')
+        pages = value.get('setting', {}).get('source_pdf_pages', [])
+        page = pages[0] if pages else value['provenance']['pdf_physical_pages'][0]
+        template = index.get('citation', {}).get('pdf_page_url_template', '')
+        if '{pdf_page}' not in template:
+            raise OnlineReadError('The online index has no PDF page citation template')
+        pdf_url = template.replace('{pdf_page}', str(page))
         return {'source_commit': commit,
                 'fetched_at': datetime.now(timezone.utc).isoformat(),
-                'source_url': self.web + '/blob/' + commit + '/' + row['json_file'],
+                'source_url': pdf_url,
+                'source_pdf_page': page,
+                'pdf_page_url_template': template,
+                'data_url': self.web + '/blob/' + commit + '/' + row['json_file'],
+                'case_url': self.web + '/blob/' + commit + '/' + row['markdown_file'],
                 'case_id': row['case_id'], 'case': value,
                 'local_materials_written': False}
 

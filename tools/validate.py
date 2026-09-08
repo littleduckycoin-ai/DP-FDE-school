@@ -60,7 +60,7 @@ integrity = read_json(ROOT / 'sources/integrity.json')
 expected = {x['id']: x for x in integrity['cases']}
 check(len(index['cases']) == 24, 'Index must contain 24 cases')
 check([x['id'] for x in index['cases']] == list(range(1, 25)), 'Case IDs must be unique and ordered')
-check(index.get('schema_version') == '3.1', 'Case index must route learner feedback to reflection files')
+check(index.get('schema_version') == '3.2', 'Case index must include reflection and PDF citation routes')
 online = read_json(ROOT / 'data/online-school.json')
 check(online.get('mode') == 'online' and online.get('persist_local_materials') is False, 'School entry must use online sources')
 check(online.get('skill_install_url') == 'https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide', 'Installable school skill URL is missing or unexpected')
@@ -68,6 +68,11 @@ feedback = online.get('feedback', {})
 check(feedback.get('channel') == 'case_reflection_files', 'Learner feedback must use case reflection files')
 check(feedback.get('path_template') == 'cases/{case_id}/reflections/{learner_id}-{date}.md', 'Reflection path template is missing or unexpected')
 check(not (ROOT / '.github/ISSUE_TEMPLATE/learning-note.yml').exists(), 'Learning feedback must not use an Issue form')
+pdf_viewer = 'https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf'
+pdf_template = pdf_viewer + '#page={pdf_page}'
+check(online.get('source_pdf', {}).get('pdf_page_url_template') == pdf_template, 'Online service index must expose direct PDF page links')
+check(index.get('citation', {}).get('pdf_page_url_template') == pdf_template, 'Case index must expose direct PDF page links')
+check((ROOT / '.nojekyll').is_file(), 'GitHub Pages must publish the source PDF without Jekyll processing')
 check(len(list((ROOT / 'cases').glob('*/base/case.md'))) == 24, 'Expected 24 Markdown cases')
 check(len(list((ROOT / 'cases').glob('*/base/case.json'))) == 24, 'Expected 24 JSON cases')
 catalog = (ROOT / 'cases/README.md').read_text(encoding='utf-8')
@@ -80,6 +85,7 @@ for item in index['cases']:
     check(online_urls.get('raw_markdown') == online['raw_main_prefix'] + item['markdown_file'], f'{cid}: online Markdown route mismatch')
     check('discussions' not in online_urls, f'{cid}: obsolete Issue discussion route remains')
     check(online_urls.get('new_reflection') == online['repository_url'] + '/new/main/' + item['reflections_dir'], f'{cid}: reflection creation route mismatch')
+    check(online_urls.get('source_pdf_start') == pdf_viewer + '#page=' + str(item['source_pdf_page_range'][0]), f'{cid}: direct source PDF route mismatch')
     c = read_json(ROOT / item['json_file'])
     md = (ROOT / item['markdown_file']).read_text(encoding='utf-8')
     schema_check(c, schema, f'case {cid:02d}')
@@ -186,6 +192,7 @@ for path in reviewed_docs:
 
 canonical = ROOT/'.codex/skills/school-guide/SKILL.md'
 skill_text = canonical.read_text(encoding='utf-8')
+check('pdf_page_url_template' in skill_text and 'JSON链接作为主要链接' in skill_text, 'School skill must prefer learner-visible PDF page citations')
 skill_metadata = skill_text.split('---\n',2)[1]
 for native in ['.agents','.claude']:
     adapter = ROOT/native/'skills/school-guide/SKILL.md'
