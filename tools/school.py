@@ -21,6 +21,7 @@ KINDS = {'thought':'思考', 'evaluation':'评价', 'question':'问题', 'applic
          'disagreement':'分歧', 'feedback':'给同学的反馈', 'revision':'观点修订', 'question_status':'问题状态更新'}
 MARKER = re.compile(r'<!-- school-record-v1\n(.*?)\n-->', re.S)
 SLUG = re.compile(r'[a-z0-9][a-z0-9_-]{0,79}\Z')
+PDF_VIEWER = 'https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf'
 
 def now():
     return datetime.now(timezone.utc).isoformat(timespec='microseconds')
@@ -116,7 +117,7 @@ def render_record(record):
             for ref in item['source_refs']:
                 page = ref['pdf_pages'][0]
                 lines += [f'- [案例{ref["case_number"]:02d} · PDF第'+ '、'.join(map(str,ref['pdf_pages']))+
-                          f'页](../../../sources/original-interviews.pdf#page={page})：'+html.escape(ref.get('note',''),quote=False)]
+                          f'页]({PDF_VIEWER}#page={page})：'+html.escape(ref.get('note',''),quote=False)]
             if item['source_refs']:
                 lines.append('')
         if turn['agent_feedback']:

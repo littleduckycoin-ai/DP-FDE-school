@@ -28,6 +28,8 @@ class OnlineSchoolTests(unittest.TestCase):
         self.path = self.folder + '/learner-a-2026-09-07.md'
         self.row = {'id': 4, 'case_id': self.cid,
                     'json_file': 'cases/' + self.cid + '/base/case.json',
+                    'markdown_file': 'cases/' + self.cid + '/base/case.md',
+                    'source_pdf_page_range': [34, 46],
                     'reflections_dir': self.folder}
 
     def lesson_transport(self, path, params):
@@ -36,9 +38,13 @@ class OnlineSchoolTests(unittest.TestCase):
             return {'sha': self.rev}
         self.assertEqual(params['ref'], self.rev)
         if path == '/contents/data/case-index.json':
-            return encoded_json({'cases': [self.row]})
+            return encoded_json({
+                'citation': {'pdf_page_url_template':
+                    'https://school.example/source.pdf#page={pdf_page}'},
+                'cases': [self.row]})
         return encoded_json({'identity': {'case_id': self.cid},
                              'one_sentence_intro': 'Read from the current online revision.',
+                             'setting': {'source_pdf_pages': [2]},
                              'provenance': {'pdf_physical_pages': [1],
                                             'original_qa': []}})
 
@@ -75,7 +81,10 @@ class OnlineSchoolTests(unittest.TestCase):
                 return {'sha': self.rev}
             self.assertEqual(params['ref'], self.rev)
             if path == '/contents/data/case-index.json':
-                return encoded_json({'cases': [self.row]})
+                return encoded_json({
+                    'citation': {'pdf_page_url_template':
+                        'https://school.example/source.pdf#page={pdf_page}'},
+                    'cases': [self.row]})
             if path == '/contents/' + self.folder:
                 return listing
             if path == '/contents/' + self.path:
@@ -90,6 +99,12 @@ class OnlineSchoolTests(unittest.TestCase):
         second = client.lesson(self.cid)
         self.assertEqual(first['source_commit'], 'a' * 40)
         self.assertEqual(second['source_commit'], 'b' * 40)
+        self.assertEqual(second['source_url'],
+                         'https://school.example/source.pdf#page=2')
+        self.assertEqual(second['pdf_page_url_template'],
+                         'https://school.example/source.pdf#page={pdf_page}')
+        self.assertTrue(second['data_url'].endswith('/' + self.row['json_file']))
+        self.assertTrue(second['case_url'].endswith('/' + self.row['markdown_file']))
         self.assertEqual(len([r for r in self.requests if r[0] == '/commits/main']), 2)
         self.assertFalse(second['local_materials_written'])
 

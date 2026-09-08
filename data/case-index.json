@@ -1,8 +1,14 @@
 {
-  "schema_version": "3.1",
+  "schema_version": "3.2",
   "prepared_date": "2026-09-07",
   "case_count": 24,
   "path_base": "repository_root",
+  "citation": {
+    "preferred_case_fact_link": "source_pdf_page",
+    "source_pdf_url": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf",
+    "pdf_page_url_template": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page={pdf_page}",
+    "page_numbering": "PDF physical page"
+  },
   "cases": [
     {
       "id": 1,
@@ -28,7 +34,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-01-manufacturing-training/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-01-manufacturing-training/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-01-manufacturing-training/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-01-manufacturing-training/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-01-manufacturing-training/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=7"
       }
     },
     {
@@ -55,7 +62,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-02-vehicle-registration/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-02-vehicle-registration/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-02-vehicle-registration/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-02-vehicle-registration/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-02-vehicle-registration/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=15"
       }
     },
     {
@@ -82,7 +90,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-03-legal-case-workspace/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-03-legal-case-workspace/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-03-legal-case-workspace/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-03-legal-case-workspace/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-03-legal-case-workspace/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=25"
       }
     },
     {
@@ -109,7 +118,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-04-urban-planning-tools/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-04-urban-planning-tools/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-04-urban-planning-tools/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-04-urban-planning-tools/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-04-urban-planning-tools/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=34"
       }
     },
     {
@@ -136,7 +146,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-05-creator-operations/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-05-creator-operations/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-05-creator-operations/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-05-creator-operations/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-05-creator-operations/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=47"
       }
     },
     {
@@ -163,7 +174,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-06-truck-loading/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-06-truck-loading/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-06-truck-loading/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-06-truck-loading/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-06-truck-loading/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=57"
       }
     },
     {
@@ -190,7 +202,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-07-team-ai-collaboration/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-07-team-ai-collaboration/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-07-team-ai-collaboration/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-07-team-ai-collaboration/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-07-team-ai-collaboration/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=69"
       }
     },
     {
@@ -217,7 +230,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-08-industrial-parts-search/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-08-industrial-parts-search/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-08-industrial-parts-search/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-08-industrial-parts-search/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-08-industrial-parts-search/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=78"
       }
     },
     {
@@ -244,7 +258,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-09-research-finance/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-09-research-finance/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-09-research-finance/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-09-research-finance/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-09-research-finance/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=88"
       }
     },
     {
@@ -271,7 +286,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-10-retail-reconciliation/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-10-retail-reconciliation/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-10-retail-reconciliation/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-10-retail-reconciliation/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-10-retail-reconciliation/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=97"
       }
     },
     {
@@ -298,7 +314,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-11-customer-side-development/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-11-customer-side-development/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-11-customer-side-development/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-11-customer-side-development/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-11-customer-side-development/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=108"
       }
     },
     {
@@ -325,7 +342,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-12-ecommerce-content-assets/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-12-ecommerce-content-assets/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-12-ecommerce-content-assets/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-12-ecommerce-content-assets/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-12-ecommerce-content-assets/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=121"
       }
     },
     {
@@ -352,7 +370,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-13-fire-maintenance/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-13-fire-maintenance/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-13-fire-maintenance/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-13-fire-maintenance/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-13-fire-maintenance/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=131"
       }
     },
     {
@@ -379,7 +398,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-14-organizational-adoption/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-14-organizational-adoption/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-14-organizational-adoption/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-14-organizational-adoption/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-14-organizational-adoption/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=138"
       }
     },
     {
@@ -406,7 +426,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-15-local-business-copywriting/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-15-local-business-copywriting/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-15-local-business-copywriting/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-15-local-business-copywriting/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-15-local-business-copywriting/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=148"
       }
     },
     {
@@ -433,7 +454,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-16-telecom-analysis/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-16-telecom-analysis/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-16-telecom-analysis/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-16-telecom-analysis/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-16-telecom-analysis/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=160"
       }
     },
     {
@@ -460,7 +482,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-17-manufacturing-quotation/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-17-manufacturing-quotation/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-17-manufacturing-quotation/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-17-manufacturing-quotation/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-17-manufacturing-quotation/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=169"
       }
     },
     {
@@ -487,7 +510,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-18-sales-enablement/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-18-sales-enablement/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-18-sales-enablement/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-18-sales-enablement/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-18-sales-enablement/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=181"
       }
     },
     {
@@ -514,7 +538,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-19-packaging-review/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-19-packaging-review/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-19-packaging-review/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-19-packaging-review/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-19-packaging-review/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=189"
       }
     },
     {
@@ -541,7 +566,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-20-supply-chain-visibility/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-20-supply-chain-visibility/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-20-supply-chain-visibility/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-20-supply-chain-visibility/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-20-supply-chain-visibility/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=200"
       }
     },
     {
@@ -568,7 +594,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-21-fire-design-drafts/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-21-fire-design-drafts/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-21-fire-design-drafts/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-21-fire-design-drafts/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-21-fire-design-drafts/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=210"
       }
     },
     {
@@ -595,7 +622,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-22-inventory-advertising/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-22-inventory-advertising/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-22-inventory-advertising/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-22-inventory-advertising/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-22-inventory-advertising/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=219"
       }
     },
     {
@@ -622,7 +650,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-23-equipment-rental/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-23-equipment-rental/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-23-equipment-rental/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-23-equipment-rental/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-23-equipment-rental/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=229"
       }
     },
     {
@@ -649,7 +678,8 @@
         "raw_json": "https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/cases/case-24-distributor-data/base/case.json",
         "reflections": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-24-distributor-data/reflections",
         "canon": "https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/cases/case-24-distributor-data/canon",
-        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-24-distributor-data/reflections"
+        "new_reflection": "https://github.com/littleduckycoin-ai/DP-FDE-school/new/main/cases/case-24-distributor-data/reflections",
+        "source_pdf_start": "https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=237"
       }
     }
   ]

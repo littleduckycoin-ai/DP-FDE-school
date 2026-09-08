@@ -7,9 +7,19 @@
 1. GET `https://api.github.com/repos/littleduckycoin-ai/DP-FDE-school/commits/main`取得当前commit SHA。
 2. 用同一SHA请求`GET https://api.github.com/repos/littleduckycoin-ai/DP-FDE-school/contents/<path>?ref=<SHA>`。文件响应的Base64正文只在内存中解码；目录响应必须读取完整条目列表。
 3. 路径从[在线服务索引](https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/data/online-school.json)和[案例索引](https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/data/case-index.json)取得。按需读单个案例的Markdown、完整访谈JSON、图片、reflection和已审拆解，不递归下载全库。
-4. 引用使用`https://github.com/littleduckycoin-ai/DP-FDE-school/blob/<SHA>/<path>`，并标原PDF物理页。下一轮需要资料时重新查询main SHA。
+4. JSON、Markdown和reflection文件的内部引用使用`https://github.com/littleduckycoin-ai/DP-FDE-school/blob/<SHA>/<path>`。案例事实给学员展示时使用在线索引中的`pdf_page_url_template`，替换为准确的PDF物理页。下一轮需要资料时重新查询main SHA。
 
 GitHub文件页和Raw URL是备用入口。网页只返回登录框、错误或截断内容时不算读到全文；切换API或直接文件读取。遇到403、404、限流或超时时说明实际读取范围，不改读本机旧材料来冒充线上当前版。
+
+## 生成可点击的原PDF页引用
+
+原PDF由GitHub Pages以`application/pdf`提供，页面入口为：
+
+`https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=<物理页>`
+
+Agent先用结构化案例定位证据，再把链接呈现为“原访谈PDF第N页”。`#page=N`中的N必须是`provenance.pdf_physical_pages`口径。具体论断优先取相应章节的`source_pdf_pages`或`based_on_pdf_pages`；需要更精确时，在`provenance.original_page_text`逐页定位原句。一个链接只声称它实际支持的内容。
+
+JSON链接是机器核对入口，不能替代给学员看的PDF证据。教材编辑分析可以补充Markdown链接；学员表达使用reflection链接。浏览器不支持页码跳转时，仍会打开完整原PDF，并以链接文字中的物理页码供手动定位。
 
 ## 读取reflection知识文件
 
