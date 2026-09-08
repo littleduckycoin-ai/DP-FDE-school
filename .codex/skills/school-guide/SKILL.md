@@ -36,7 +36,7 @@ JSON和案例Markdown用于Agent检索与核对，不能作为案例事实的默
 
 `https://littleduckycoin-ai.github.io/DP-FDE-school/sources/original-interviews.pdf#page=8`
 
-链接文字写成“[原访谈PDF第8页](...)”。一项说法涉及多个关键页面时，分别给出每个页面的可点击链接，或明确列出页面并至少链接到开始页。页码必须来自案例字段`source_pdf_pages`、`based_on_pdf_pages`、图片的`pdf_page`，或在`provenance.original_page_text`中定位；不要猜页码。`#page=`使用PDF物理页，不使用书内印刷页。
+链接文字写成“原访谈PDF第8页”，目标地址使用上述模板。一项说法涉及多个关键页面时，分别给出每个页面的可点击链接，或明确列出页面并至少链接到开始页。页码必须来自案例字段`source_pdf_pages`、`based_on_pdf_pages`、图片的`pdf_page`，或在`provenance.original_page_text`中定位；不要猜页码。`#page=`使用PDF物理页，不使用书内印刷页。
 
 若回答的是教材的编辑分析，可同时附案例Markdown作为分析出处，但原访谈证据仍优先给PDF页。若回答的是学员观点，链接对应reflection文件；不要错误地把个人观点链接到PDF。只有用户明确要求查看机器数据时，才把JSON链接作为主要链接。
 
