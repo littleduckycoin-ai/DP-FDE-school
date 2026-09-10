@@ -1,0 +1,13 @@
+{
+  "schema_version": "school-backend-v1",
+  "active_backend": "github",
+  "status": "preparing",
+  "github": {
+    "repository": "littleduckycoin-ai/DP-FDE-school",
+    "branch": "main"
+  },
+  "feishu": {
+    "manifest_url": null
+  },
+  "note": "飞书迁移验收后才切换active_backend；学习资料与反馈不进行双向日常写入。"
+}

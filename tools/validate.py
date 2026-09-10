@@ -62,6 +62,12 @@ check(len(index['cases']) == 24, 'Index must contain 24 cases')
 check([x['id'] for x in index['cases']] == list(range(1, 25)), 'Case IDs must be unique and ordered')
 check(index.get('schema_version') == '3.2', 'Case index must include reflection and PDF citation routes')
 online = read_json(ROOT / 'data/online-school.json')
+backend = read_json(ROOT / 'data/school-backend.json')
+check(backend.get('schema_version') == 'school-backend-v1', 'School backend route schema is missing')
+check(backend.get('active_backend') in ('github', 'feishu'), 'Unknown school backend')
+if backend.get('active_backend') == 'feishu':
+    manifest_url = backend.get('feishu', {}).get('manifest_url')
+    check(backend.get('status') == 'ready' and isinstance(manifest_url, str) and manifest_url.startswith('https://'), 'Feishu cutover requires a ready route and actual HTTPS manifest URL')
 check(online.get('mode') == 'online' and online.get('persist_local_materials') is False, 'School entry must use online sources')
 check(online.get('skill_install_url') == 'https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide', 'Installable school skill URL is missing or unexpected')
 feedback = online.get('feedback', {})
@@ -192,7 +198,7 @@ for path in reviewed_docs:
 
 canonical = ROOT/'.codex/skills/school-guide/SKILL.md'
 skill_text = canonical.read_text(encoding='utf-8')
-check('pdf_page_url_template' in skill_text and 'JSON链接作为主要链接' in skill_text, 'School skill must prefer learner-visible PDF page citations')
+check(all(term in skill_text for term in ['pdf_page_url_template', 'source_page_links', '物理页', 'JSON', '默认']), 'School skill must describe original PDF page citations for both backends')
 skill_metadata = skill_text.split('---\n',2)[1]
 for native in ['.agents','.claude']:
     adapter = ROOT/native/'skills/school-guide/SKILL.md'

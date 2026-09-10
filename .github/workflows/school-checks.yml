@@ -17,6 +17,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Validate school materials
         run: python tools/validate.py
       - name: Preserve existing learner history
@@ -26,3 +29,5 @@ jobs:
         run: python tools/validate.py --base-ref "$SCHOOL_BASE_SHA"
       - name: Test recording and meeting workflows
         run: python -m unittest discover -s tests -v
+      - name: Test Feishu online adapter
+        run: node --test tests/test_feishu_school.mjs
