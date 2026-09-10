@@ -1,5 +1,7 @@
 # 发一个链接，开始在线学习
 
+学校正从 GitHub 接入飞书，学员继续使用同一个 Codex Skill。Agent 先核对[后端入口](data/school-backend.json)，再读取当前资料库；迁移与权限未验收时保持 GitHub。飞书启用后的首次授权和使用方式见[飞书学习说明](docs/feishu-learning.md)。下文 GitHub 的提交方式仅适用于当前 GitHub 后端。
+
 希望Codex以后自动识别FDE学习需求时，先[安装school-guide](INSTALL_SKILL.md)：
 
 > 请使用 $skill-installer 安装这个skill：https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide
@@ -34,6 +36,6 @@
 
 ## Agent从这里继续
 
-先在线读取[完整教学规则](https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/.codex/skills/school-guide/SKILL.md)及[案例索引](https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/data/case-index.json)，按相关性读取案例、讨论和已审拆解，不批量下载全库。若Raw入口无法访问，使用[GitHub文件页面](https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/.codex/skills/school-guide/SKILL.md)或[Contents API](https://api.github.com/repos/littleduckycoin-ai/DP-FDE-school/contents/.codex/skills/school-guide/SKILL.md?ref=main)。
+先在线读取[完整教学规则](https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/.codex/skills/school-guide/SKILL.md)，按其中的 bootstrap 核对当前后端入口。GitHub 后端才继续读取[GitHub 案例索引](https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/data/case-index.json)；飞书后端则读取已配置的飞书规则和 manifest。按相关性读取案例、讨论和已审拆解，不批量下载全库。若 Raw 规则入口无法访问，使用[GitHub 文件页面](https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/.codex/skills/school-guide/SKILL.md)或[Contents API](https://api.github.com/repos/littleduckycoin-ai/DP-FDE-school/contents/.codex/skills/school-guide/SKILL.md?ref=main)。
 
-每轮需要资料时检查线上当前版本；同一轮尽量使用同一commit的教材并给出来源。直接网页读取、GitHub连接和HTTP请求都可用于读取，响应进入会话上下文即可。若工具无法访问线上，说明具体失败并引导启用可用的读取能力，不把搜索摘要、旧记忆或本地副本说成刚刚读到的最新教材。完整路由见[在线协议](https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/docs/online-protocol.md)。
+每轮需要资料时检查线上当前版本。GitHub 同一轮使用同一 commit；飞书保留实际文档版本与读取窗口，不冒称存在全库原子快照。响应进入会话上下文即可。若工具无法访问线上，说明具体失败并引导启用可用的读取能力，不把搜索摘要、旧记忆或本地副本说成刚刚读到的最新教材。GitHub 细节见[在线协议](https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/docs/online-protocol.md)，飞书细节见[飞书工作流](.codex/skills/school-guide/references/feishu-workflow.md)。
