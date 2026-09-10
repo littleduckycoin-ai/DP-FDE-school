@@ -7,6 +7,7 @@ does all authenticated remote IO. State and prepared files belong in .school/.
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -226,7 +227,9 @@ class LarkTransport:
         self.profile = profile
 
     def call(self, args, content=None):
-        argv = [self.cli, "--profile", self.profile, *args, "--as", "user"]
+        argv = [self.cli, "--profile", self.profile, *args]
+        if args[:1] != ["auth"]:
+            argv += ["--as", "user"]
         result = subprocess.run(argv, input=content, cwd=self.root, encoding="utf-8", capture_output=True, timeout=240, shell=False)
         if result.returncode:
             # Do not persist complete CLI output; OAuth links and credentials do not belong in journals.
@@ -235,7 +238,54 @@ class LarkTransport:
             envelope = json.loads(result.stdout)
         except ValueError as exc:
             raise MigrationError("CLI returned non-JSON; write outcome unknown, resume with the same state") from exc
+        # auth status emits a native diagnostic object, unlike API/shortcut envelopes.
+        # The caller still requires verified=true and the exact requested owner.
+        if args[:2] == ["auth", "status"] and isinstance(envelope, dict) and "ok" not in envelope and "identities" in envelope:
+            return envelope
         return unwrap_response(envelope)
+
+    def verify_identity(self, owner_open_id):
+        status = self.call(["auth", "status", "--json", "--verify"])
+        user = status.get("identities", {}).get("user", {})
+        if (not status.get("appId") or user.get("openId") != owner_open_id
+                or user.get("available") is not True or user.get("verified") is not True
+                or user.get("status") not in ("ready", "needs_refresh")):
+            raise MigrationError("Private migration requires the remotely verified OAuth owner; no bot or different user is allowed")
+        return {"app_id": status["appId"], "open_id": owner_open_id}
+
+    def ensure_private(self, resource, owner_open_id):
+        kind, token = resource.get("type"), resource.get("token")
+        if kind not in ("folder", "docx", "file") or not token:
+            raise MigrationError("Owner-only migration supports verified Drive folders, Docx and files only; this resource type is unsupported")
+
+        def inspect():
+            settings = self.call(["drive", "+permission-get-setting", "--token", token, "--type", kind, "--json"])
+            members = self.call(["drive", "+member-list", "--token", token, "--type", kind, "--json"])
+            public, items = settings.get("permission_public"), members.get("items")
+            if not isinstance(public, dict) or not isinstance(items, list) or not items or members.get("has_more"):
+                raise MigrationError("Private permission inspection is incomplete; refusing to assume owner-only access")
+            if any(not isinstance(member, dict) or member.get("member_type") != "openid"
+                   or member.get("member_id") != owner_open_id or member.get("perm") != "full_access"
+                   for member in items):
+                raise MigrationError("Resource has collaborators other than the verified owner, or owner permission is unverified; stopped without removing collaborators")
+            return public, items
+
+        public, items = inspect()
+        if kind == "folder":
+            # Official permission.public PATCH v2 does not list folder as a type.
+            if public.get("link_share_entity") != "closed":
+                raise MigrationError("Folder link sharing is not closed; automatic folder permission mutation is unsupported")
+        elif public.get("link_share_entity") != "closed" or public.get("external_access_entity") != "closed":
+            self.api("PATCH", f"/open-apis/drive/v2/permissions/{token}/public",
+                     {"external_access_entity": "closed", "link_share_entity": "closed"}, {"type": kind})
+            public, items = inspect()
+            if public.get("link_share_entity") != "closed" or public.get("external_access_entity") != "closed":
+                raise MigrationError("Private document/file permissions failed readback after closing sharing")
+        return {"status": "owner_only_verified", "checked_at": datetime.now(timezone.utc).isoformat(),
+                "owner_open_id": owner_open_id, "type": kind, "member_count": len(items),
+                "link_share_entity": public["link_share_entity"],
+                "external_access_entity": public.get("external_access_entity"),
+                "folder_setting_mutated": False}
 
     def api(self, method, path, data=None, params=None):
         args = ["api", method, path]
@@ -351,15 +401,72 @@ class Runner:
         self.state = read_json(state_path) if Path(state_path).exists() else {"format": "feishu-migration-state-v1", "plan_id": plan["plan_id"], "target": target, "operations": {}, "cases": []}
         if self.state["plan_id"] != plan["plan_id"] or self.state["target"] != target:
             raise MigrationError("State belongs to a different plan or target; do not reuse it")
+        self.private_owner = target.get("private_owner_open_id")
+        if self.private_owner is not None:
+            if not isinstance(self.private_owner, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", self.private_owner):
+                raise MigrationError("private_owner_open_id requires an explicit verified OAuth open_id")
+            self.state["private_actor"] = self.transport.verify_identity(self.private_owner)
+            self.state["target_privacy"] = self.transport.ensure_private(target["parent"], self.private_owner)
 
     def save(self):
         save_json(self.state_path, self.state)
 
+    @staticmethod
+    def location(resource):
+        return (resource.get("type"), resource.get("token"), resource.get("space_id"))
+
+    def check_parent(self, parent, seen=None):
+        """Prove the ancestry using only listings below the explicit target root."""
+        if self.location(parent) == self.location(self.target["parent"]):
+            return
+        seen = set() if seen is None else seen
+        identity = self.location(parent)
+        if identity in seen:
+            raise MigrationError("Container journal contains an ancestry cycle")
+        seen.add(identity)
+        matches = [op for op in self.state["operations"].values()
+                   if op.get("status") == "done" and op.get("kind") == "container"
+                   and self.location(op.get("resource", {})) == identity]
+        if len(matches) != 1 or not isinstance(matches[0].get("parent"), dict):
+            raise MigrationError("Parent is outside the explicit migration root or lacks a bound container journal")
+        ancestor = matches[0]["parent"]
+        self.check_parent(ancestor, seen)
+        self.check_resource(ancestor, parent, "container")
+
+    def check_resource(self, parent, resource, kind):
+        # `parent` must already have passed check_parent. Never follow a journal URL.
+        children = self.transport.children(parent)
+        if not isinstance(children, list):
+            raise MigrationError("Incomplete fixed-parent listing; resource boundary is unverified")
+        wiki_container = kind == "container" and parent["type"] == "wiki"
+        key = "node_token" if wiki_container else "token"
+        matches = [child for child in children if child.get(key) == resource.get("token")]
+        if len(matches) != 1 or (not wiki_container and matches[0].get("type") != resource.get("type")):
+            raise MigrationError("Resource is not uniquely visible by ID in its fixed migration parent; no content or permissions were accessed")
+        checked = dict(resource)
+        checked.pop("url", None)
+        if matches[0].get("url"):
+            checked["url"] = matches[0]["url"]
+        return checked
+
+    def check_private(self, key, resource):
+        if self.private_owner is not None:
+            privacy = self.transport.ensure_private(resource, self.private_owner)
+            self.state["operations"][key]["privacy"] = privacy
+            self.save()
+
     def ensure(self, key, parent, title, kind, create, verify=None):
+        self.check_parent(parent)
         ops = self.state["operations"]
         op = ops.get(key)
+        if op and self.location(op.get("parent", {})) != self.location(parent):
+            raise MigrationError("Operation journal has no matching fixed parent; reconcile it explicitly before resuming")
         if op and op["status"] == "done":
-            return op["resource"]
+            resource = self.check_resource(parent, op["resource"], kind)
+            if kind != "container":
+                resource["url"] = self.transport.resource_url(resource)
+            self.check_private(key, resource)
+            return resource
         found = op.get("resource") if op else None
         if not found:
             found = self.transport.find(parent, title)
@@ -376,21 +483,54 @@ class Runner:
                 # An empty list immediately after a timeout is not proof that create
                 # failed: service indexing can lag. Never recreate an uncertain write.
                 raise MigrationError(f"Creation outcome is unknown for {key}; no matching resource is visible yet. Retry reading later or reconcile this operation before clearing its journal entry")
-            ops[key] = {"status": "started", "title": title, "kind": kind}
+            ops[key] = {"status": "started", "title": title, "kind": kind, "parent": dict(parent)}
             self.save()  # durable intent before a non-idempotent creation request
             resource = create()
             ops[key]["resource"] = resource
             self.save()
+        resource = self.check_resource(parent, resource, kind)
         if kind != "container":
             resource["url"] = self.transport.resource_url(resource)
+        self.check_private(key, resource)
         if verify:
             verify(resource)
-        ops[key] = {"status": "done", "resource": resource, "title": title, "kind": kind}
+        privacy = ops[key].get("privacy")
+        ops[key] = {"status": "done", "resource": resource, "title": title, "kind": kind, "parent": dict(parent)}
+        if privacy is not None:
+            ops[key]["privacy"] = privacy
         self.save()
         return resource
 
     def folder(self, key, parent, title):
         return self.ensure(key, parent, title, "container", lambda: self.transport.container(parent, title))
+
+    def school_root(self, parent):
+        if not self.target.get("use_parent_as_school", False):
+            return self.folder("school-root", parent, "FDE AI School")
+        if parent["type"] != "folder":
+            raise MigrationError("use_parent_as_school currently requires an explicitly selected new empty folder")
+        op = self.state["operations"].get("school-root")
+        if op:
+            resource = op.get("resource", {})
+            if (op.get("status") != "done" or op.get("kind") != "adopted_empty_folder"
+                    or op.get("verified_empty") is not True or resource != parent):
+                raise MigrationError("School-root journal does not verify adoption of this empty target")
+            # It is now expected to contain migrated material. Reuse only this journal.
+            self.check_private("school-root", resource)
+            return resource
+        if self.state["operations"] or self.state["cases"]:
+            raise MigrationError("Cannot adopt a parent after other migration operations have started")
+        children = self.transport.children(parent)
+        if not isinstance(children, list) or children:
+            raise MigrationError("Selected school folder must be verified empty before first adoption; no unrelated content will be adopted")
+        resource = dict(parent)
+        self.state["operations"]["school-root"] = {
+            "status": "done", "kind": "adopted_empty_folder", "resource": resource,
+            "verified_empty": True, "title": "FDE AI School",
+        }
+        self.check_private("school-root", resource)
+        self.save()  # Durable adoption evidence before the first remote child is created.
+        return resource
 
     def upload(self, parent, rel, key=None):
         expected = self.plan["files"].get(rel) or file_hash(inside(self.root, rel))
@@ -414,9 +554,17 @@ class Runner:
 
     def append_markers(self, key, doc, blocks, expected):
         if self.state["operations"].get(key, {}).get("status") == "done": return
+        matches = [op for op in self.state["operations"].values()
+                   if op.get("status") == "done" and op.get("kind") == "docx"
+                   and op.get("resource", {}).get("token") == doc["token"]]
+        if len(matches) != 1 or not isinstance(matches[0].get("parent"), dict):
+            raise MigrationError("Structured append target lacks a unique fixed-parent document journal")
+        parent = matches[0]["parent"]
+        self.check_parent(parent)
+        self.check_resource(parent, doc, "docx")
         actual = block_text(self.transport.blocks(doc["token"]))
         if expected not in actual:
-            self.transport.append_blocks(doc["token"], blocks, self.plan["plan_id"] + ":" + key)
+            self.transport.append_blocks(doc["token"], blocks, self.plan["plan_id"] + ":" + doc["token"] + ":" + key)
         actual = block_text(self.transport.blocks(doc["token"]))
         if expected not in actual:
             raise MigrationError(f"Structured block failed readback: {key}")
@@ -457,8 +605,10 @@ def apply_plan(plan, target, state_path, transport, selected, rules_file):
         raise MigrationError("Target requires parent.type, parent.token and Wiki space_id")
     if any(not re.fullmatch(r"[A-Za-z0-9_-]+", str(parent[k])) for k in ("token", "space_id") if k in parent):
         raise MigrationError("Target must contain parsed tokens/IDs, not URLs or path fragments")
+    if not isinstance(target.get("use_parent_as_school", False), bool):
+        raise MigrationError("use_parent_as_school must be an explicit JSON boolean")
     runner = Runner(plan, target, state_path, transport)
-    school = runner.folder("school-root", parent, "FDE AI School")
+    school = runner.school_root(parent)
     sources = runner.folder("sources", school, "原始资料")
     archive = runner.folder("archive", sources, "迁移源文件")
     cases_parent = runner.folder("cases", school, "案例")
@@ -522,8 +672,10 @@ def apply_plan(plan, target, state_path, transport, selected, rules_file):
         runner.save()
     # Shared historical material remains readable and is also archived byte-for-byte.
     shared = runner.folder("shared", school, "跨案例沉淀")
+    shared_parents = {}
     for area in ("patterns", "curriculum", "meetings", "shared-notes", "learning-notes"):
         dest = runner.folder("shared:" + area, shared, area)
+        shared_parents[area] = dest
         for rel in (p for p in plan["files"] if p.startswith(area + "/")):
             runner.upload(archive, rel)
             if rel.endswith(".md"):
@@ -539,7 +691,9 @@ def apply_plan(plan, target, state_path, transport, selected, rules_file):
     manifest_doc = runner.doc("manifest:" + ids, school, "学校连接信息（" + str(len(runner.state["cases"])) + "例）", "学校连接信息：供学习助手读取线上规则与案例。")
     manifest = {"schema_version": SCHEMA, "school_id": "fde-school", "rules_document_id": rules["token"], "rules_url": rules["url"],
                 "case_index_document_id": index_doc["token"], "manifest_document_id": manifest_doc["token"], "manifest_url": manifest_doc["url"],
-                "school_parent": school, "source_pdf_url": full_pdf["url"], "source_pdf_sha256": plan["source_pdf_sha256"],
+                "school_parent": school, "patterns_parent": shared_parents["patterns"],
+                "meetings_parent": shared_parents["meetings"], "curriculum_parent": shared_parents["curriculum"],
+                "source_pdf_url": full_pdf["url"], "source_pdf_sha256": plan["source_pdf_sha256"],
                 "migration_plan_id": plan["plan_id"], "cases": runner.state["cases"], "migration_status": "content_verified_permissions_pending"}
     runner.append_markers("manifest-data:" + ids, manifest_doc, [marker_block("school-manifest-v1", manifest)], "school-manifest-v1")
     save_json(runner.state_path.parent / "feishu-school.json", manifest)

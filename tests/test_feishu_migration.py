@@ -5,6 +5,8 @@ from pathlib import Path
 import re
 import tempfile
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("migrate_feishu", ROOT / "tools/migrate_feishu.py")
@@ -21,6 +23,20 @@ class FakeTransport:
         self.fail_append_once = False
         self.events = set()
         self.write_count = 0
+        self.owner_open_id = "ou_owner"
+        self.privacy_calls = []
+        self.privacy_fail_tokens = set()
+
+    def verify_identity(self, owner_open_id):
+        if owner_open_id != self.owner_open_id:
+            raise m.MigrationError("verified OAuth owner mismatch")
+        return {"app_id": "app_test", "open_id": owner_open_id}
+
+    def ensure_private(self, resource, owner_open_id):
+        self.privacy_calls.append(resource["token"])
+        if resource["token"] in self.privacy_fail_tokens:
+            raise m.MigrationError("resource privacy failed")
+        return {"status": "owner_only_verified", "owner_open_id": owner_open_id}
 
     def add(self, parent, name, kind, **fields):
         self.counter += 1
@@ -34,6 +50,9 @@ class FakeTransport:
         rows = [x for x in self.objects.values() if x["parent"] == parent["token"] and x["name"] == name]
         if len(rows) > 1: raise m.MigrationError("ambiguous")
         return {k: rows[0][k] for k in ("token", "type", "url", "name")} if rows else None
+
+    def children(self, parent):
+        return [dict(x) for x in self.objects.values() if x["parent"] == parent["token"]]
 
     def container(self, parent, name):
         return self.add(parent, name, "folder")
@@ -128,7 +147,7 @@ class MigrationTests(unittest.TestCase):
 
     def test_unknown_create_is_not_retried_when_listing_may_lag(self):
         r = self.runner()
-        r.state["operations"]["base:1"] = {"status": "started", "title": "案例一", "kind": "docx"}
+        r.state["operations"]["base:1"] = {"status": "started", "title": "案例一", "kind": "docx", "parent": self.target["parent"]}
         r.save()
         with self.assertRaisesRegex(m.MigrationError, "outcome is unknown"):
             self.runner().doc("base:1", self.target["parent"], "案例一", "原文")
@@ -201,6 +220,175 @@ class MigrationTests(unittest.TestCase):
         with self.assertRaisesRegex(m.MigrationError, "different plan or target"):
             m.Runner(self.plan, {"parent": {"type": "folder", "token": "other"}}, self.state, self.transport)
 
+    def test_school_root_default_still_creates_a_child(self):
+        school = self.runner().school_root(self.target["parent"])
+        self.assertNotEqual(school["token"], self.target["parent"]["token"])
+        self.assertEqual(self.transport.write_count, 1)
+
+    def test_selected_empty_parent_is_adopted_once_and_resume_uses_its_journal(self):
+        self.target["use_parent_as_school"] = True
+        school = self.runner().school_root(self.target["parent"])
+        self.assertEqual(school, self.target["parent"])
+        self.assertEqual(self.transport.write_count, 0)
+        self.assertTrue(m.read_json(self.state)["operations"]["school-root"]["verified_empty"])
+        self.transport.document(school, "已经迁入的资料", "saved")
+        before = self.transport.write_count
+        self.assertEqual(self.runner().school_root(self.target["parent"]), school)
+        self.assertEqual(self.transport.write_count, before)
+
+    def test_parent_adoption_refuses_nonempty_folder_without_journal(self):
+        self.target["use_parent_as_school"] = True
+        self.transport.document(self.target["parent"], "现有资料", "unrelated")
+        before = self.transport.write_count
+        with self.assertRaisesRegex(m.MigrationError, "verified empty"):
+            self.runner().school_root(self.target["parent"])
+        self.assertEqual(self.transport.write_count, before)
+        self.assertFalse(self.state.exists())
+
+    def test_parent_adoption_requires_complete_listing_and_matching_journal(self):
+        self.target["use_parent_as_school"] = True
+        self.transport.children = lambda parent: None
+        with self.assertRaisesRegex(m.MigrationError, "verified empty"):
+            self.runner().school_root(self.target["parent"])
+        r = self.runner()
+        r.state["operations"]["school-root"] = {"status": "done", "kind": "container", "resource": self.target["parent"]}
+        r.save()
+        with self.assertRaisesRegex(m.MigrationError, "does not verify"):
+            self.runner().school_root(self.target["parent"])
+        self.assertEqual(self.transport.write_count, 0)
+
+    def test_parent_adoption_cannot_be_enabled_mid_migration_or_for_wiki(self):
+        self.runner().school_root(self.target["parent"])
+        self.target["use_parent_as_school"] = True
+        with self.assertRaisesRegex(m.MigrationError, "different plan or target"):
+            self.runner()
+        separate = self.out / "wiki-state.json"
+        wiki_target = {"parent": {"type": "wiki", "token": "node", "space_id": "123"}, "use_parent_as_school": True}
+        with self.assertRaisesRegex(m.MigrationError, "empty folder"):
+            m.Runner(self.plan, wiki_target, separate, self.transport).school_root(wiki_target["parent"])
+
+    def test_parent_adoption_flag_does_not_coerce_strings(self):
+        self.target["use_parent_as_school"] = "false"
+        with self.assertRaisesRegex(m.MigrationError, "JSON boolean"):
+            m.apply_plan(self.plan, self.target, self.state, self.transport, set(), "unused")
+        self.assertEqual(self.transport.write_count, 0)
+
+    def test_private_mode_checks_oauth_parent_every_created_resource_and_resume(self):
+        self.target.update(use_parent_as_school=True, private_owner_open_id="ou_owner")
+        r = self.runner()
+        school = r.school_root(self.target["parent"])
+        doc = r.doc("private-doc", school, "资料", "原文")
+        op = m.read_json(self.state)["operations"]["private-doc"]
+        self.assertEqual(op["privacy"]["status"], "owner_only_verified")
+        self.assertIn(school["token"], self.transport.privacy_calls)
+        self.assertIn(doc["token"], self.transport.privacy_calls)
+        before = self.transport.write_count
+        self.transport.privacy_fail_tokens.add(doc["token"])
+        with self.assertRaisesRegex(m.MigrationError, "privacy failed"):
+            self.runner().doc("private-doc", school, "资料", "原文")
+        self.assertEqual(self.transport.write_count, before)
+
+    def test_private_mode_refuses_wrong_identity_before_any_remote_write(self):
+        self.target["private_owner_open_id"] = "ou_someone_else"
+        with self.assertRaisesRegex(m.MigrationError, "OAuth owner mismatch"):
+            self.runner()
+        self.assertEqual(self.transport.write_count, 0)
+        self.assertEqual(self.transport.privacy_calls, [])
+
+    def test_foreign_parent_is_rejected_without_listing_or_reading_it(self):
+        r = self.runner()
+        self.transport.children = lambda parent: self.fail("foreign directory was listed")
+        with self.assertRaisesRegex(m.MigrationError, "outside the explicit migration root"):
+            r.doc("foreign", {"type": "folder", "token": "enterprise-folder"}, "资料", "text")
+        self.assertEqual(self.transport.write_count, 0)
+
+    def test_tampered_resource_journal_cannot_read_or_change_foreign_document(self):
+        self.target["private_owner_open_id"] = "ou_owner"
+        r = self.runner()
+        own = r.doc("own", self.target["parent"], "本人资料", "own")
+        foreign = self.transport.document({"token": "enterprise-folder"}, "企业资料", "foreign")
+        r.state["operations"]["own"]["resource"] = foreign
+        r.save()
+        self.transport.blocks = lambda token: self.fail("foreign document content was read")
+        self.transport.privacy_fail_tokens.add(foreign["token"])
+        with self.assertRaisesRegex(m.MigrationError, "fixed migration parent"):
+            self.runner().doc("own", self.target["parent"], "本人资料", "own")
+        self.assertNotIn(foreign["token"], self.transport.privacy_calls)
+        self.assertNotEqual(own["token"], foreign["token"])
+
+    def test_tampered_container_journal_cannot_authorize_foreign_children(self):
+        r = self.runner()
+        container = r.folder("cases", self.target["parent"], "本人案例")
+        foreign = self.transport.container({"token": "enterprise-root"}, "企业目录")
+        r.state["operations"]["cases"]["resource"] = foreign
+        r.save()
+        original_children = self.transport.children
+        def bounded(parent):
+            self.assertNotEqual(parent["token"], foreign["token"])
+            return original_children(parent)
+        self.transport.children = bounded
+        with self.assertRaisesRegex(m.MigrationError, "fixed migration parent"):
+            self.runner().doc("foreign-child", foreign, "资料", "text")
+        self.assertNotEqual(container["token"], foreign["token"])
+
+    def test_real_transport_checks_only_actual_verified_oauth_user(self):
+        transport = m.LarkTransport(self.root, cli="fake")
+        user = {"openId": "ou_owner", "available": True, "verified": True, "status": "ready"}
+        def process(*args, **kwargs):
+            return SimpleNamespace(returncode=0, stdout=json.dumps({"appId": "app1", "identities": {"user": user}}))
+        with patch.object(m.subprocess, "run", side_effect=process):
+            self.assertEqual(transport.verify_identity("ou_owner")["open_id"], "ou_owner")
+            user["verified"] = False
+            with self.assertRaisesRegex(m.MigrationError, "verified OAuth owner"):
+                transport.verify_identity("ou_owner")
+
+    def test_real_transport_normalizes_private_docx_settings_and_verifies_readback(self):
+        transport = m.LarkTransport(self.root, cli="fake")
+        public = {"external_access_entity": "open", "link_share_entity": "tenant_readable"}
+        members = {"items": [{"member_type": "openid", "member_id": "ou_owner", "perm": "full_access"}]}
+        transport.call = lambda args: {"permission_public": dict(public)} if args[1] == "+permission-get-setting" else members
+        patches = []
+        def patch(method, path, data, params):
+            patches.append((method, path, data, params))
+            public.update(data)
+            return {"permission_public": dict(public)}
+        transport.api = patch
+        result = transport.ensure_private({"type": "docx", "token": "doc"}, "ou_owner")
+        self.assertEqual(result["status"], "owner_only_verified")
+        self.assertEqual(patches, [("PATCH", "/open-apis/drive/v2/permissions/doc/public",
+                                   {"external_access_entity": "closed", "link_share_entity": "closed"}, {"type": "docx"})])
+        before = len(patches)
+        transport.ensure_private({"type": "docx", "token": "doc"}, "ou_owner")
+        self.assertEqual(len(patches), before)
+
+    def test_real_transport_does_not_guess_folder_patch_or_remove_other_members(self):
+        transport = m.LarkTransport(self.root, cli="fake")
+        public = {"external_access_entity": "open", "link_share_entity": "closed"}
+        members = {"items": [{"member_type": "openid", "member_id": "ou_owner", "perm": "full_access"}]}
+        transport.call = lambda args: {"permission_public": public} if args[1] == "+permission-get-setting" else members
+        transport.api = lambda *args, **kwargs: self.fail("unexpected permission mutation")
+        self.assertEqual(transport.ensure_private({"type": "folder", "token": "folder"}, "ou_owner")["status"], "owner_only_verified")
+        public["link_share_entity"] = "anyone_readable"
+        with self.assertRaisesRegex(m.MigrationError, "folder permission mutation is unsupported"):
+            transport.ensure_private({"type": "folder", "token": "folder"}, "ou_owner")
+        members["items"].append({"member_type": "openid", "member_id": "ou_other", "perm": "view"})
+        with self.assertRaisesRegex(m.MigrationError, "other than the verified owner"):
+            transport.ensure_private({"type": "docx", "token": "doc"}, "ou_owner")
+        with self.assertRaisesRegex(m.MigrationError, "unsupported"):
+            transport.ensure_private({"type": "wiki", "token": "node"}, "ou_owner")
+
+    def test_real_transport_refuses_incomplete_permissions_and_failed_patch_readback(self):
+        transport = m.LarkTransport(self.root, cli="fake")
+        public = {"external_access_entity": "open", "link_share_entity": "closed"}
+        members = {"items": []}
+        transport.call = lambda args: {"permission_public": public} if args[1] == "+permission-get-setting" else members
+        transport.api = lambda *args, **kwargs: {}
+        with self.assertRaisesRegex(m.MigrationError, "incomplete"):
+            transport.ensure_private({"type": "file", "token": "file"}, "ou_owner")
+        members["items"] = [{"member_type": "openid", "member_id": "ou_owner", "perm": "full_access"}]
+        with self.assertRaisesRegex(m.MigrationError, "failed readback"):
+            transport.ensure_private({"type": "file", "token": "file"}, "ou_owner")
+
     def test_apply_requires_explicit_execute(self):
         self.assertEqual(m.main(["apply", "--plan", "unused", "--target", "unused", "--state", "unused", "--all"]), 1)
         self.assertEqual(self.transport.write_count, 0)
@@ -266,6 +454,20 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(self.transport.write_count, before)
         self.assertEqual(final["migration_status"], "content_verified_permissions_pending")
         self.assertEqual(final, second)
+        for area in ("patterns", "meetings", "curriculum"):
+            parent = final[area + "_parent"]
+            self.assertEqual(self.transport.objects[parent["token"]]["name"], area)
+
+        # A separate, explicitly selected empty folder receives the complete school
+        # directly. It does not acquire a redundant FDE AI School child.
+        direct = {"parent": {"type": "folder", "token": "new-direct-target"}, "use_parent_as_school": True}
+        direct_state = self.out / "direct-state.json"
+        direct_manifest = m.apply_plan(self.plan, direct, direct_state, self.transport, {1}, rules)
+        self.assertEqual(direct_manifest["school_parent"], direct["parent"])
+        self.assertIsNone(self.transport.find(direct["parent"], "FDE AI School"))
+        before = self.transport.write_count
+        self.assertEqual(m.apply_plan(self.plan, direct, direct_state, self.transport, {1}, rules), direct_manifest)
+        self.assertEqual(self.transport.write_count, before)
 
 
 if __name__ == "__main__":
