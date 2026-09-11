@@ -273,6 +273,39 @@ class MigrationTests(unittest.TestCase):
         self.assertIn("school-record-meta-end", restored)
         self.assertIn("school-interaction-end", restored)
 
+    def test_literal_qa_escaping_keeps_links_images_and_mermaid_unchanged(self):
+        prefix = '# 案例\n[链接](https://example.org/a?q=1)\n![图片](@./image.png)\n```mermaid\nA["第一行\\n第二行"]\n```\n'
+        qa = 'Q1：系统有\\.NET，识图\\+回填，Know\\-how，5\\~6，loop\\)。'
+        suffix = '\n[原访谈](https://example.org/original.pdf#page=8)\n'
+        source = prefix + qa + suffix
+        escaped = m.preserve_literal_qa_backslashes(source, [qa])
+        self.assertEqual(escaped, prefix + 'Q1：系统有\\\\.NET，识图\\\\+回填，Know\\\\-how，5\\\\~6，loop\\\\)。' + suffix)
+        self.assertEqual(source, prefix + qa + suffix)
+
+    def test_literal_qa_escaping_refuses_missing_duplicate_and_overlapping_ranges(self):
+        for source, blocks in [('没有原文', ['Q1 原文']), ('Q1 原文\nQ1 原文', ['Q1 原文']), ('Q1 原文', ['Q1 原文', '原文'])]:
+            with self.subTest(source=source, blocks=blocks):
+                with self.assertRaises(m.MigrationError):
+                    m.preserve_literal_qa_backslashes(source, blocks)
+
+    @unittest.skipUnless(importlib.util.find_spec("markdown_it"), "optional CommonMark parser is unavailable")
+    def test_all_original_qa_roundtrip_through_commonmark_preserves_full_text(self):
+        from markdown_it import MarkdownIt
+        parser = MarkdownIt("commonmark")
+        count = 0
+        for path in sorted((ROOT / "cases").glob("case-*/base/case.json")):
+            original_qa = [q["original_block"] for q in m.read_json(path)["provenance"]["original_qa"]]
+            source = path.with_suffix(".md").read_text(encoding="utf-8")
+            # This also checks all 144 source ranges are unambiguous before import.
+            m.preserve_literal_qa_backslashes(source, original_qa)
+            for qa in original_qa:
+                with self.subTest(case=path.parent.parent.name, question=qa.splitlines()[0]):
+                    escaped = m.preserve_literal_qa_backslashes(qa, [qa])
+                    visible = "\n".join("".join(t.content if t.type in ("text", "code_inline", "html_inline") else "\n" if t.type in ("softbreak", "hardbreak") else "" for t in block.children or []) for block in parser.parse(escaped) if block.type == "inline")
+                    self.assertEqual(re.sub(r"\s+", "", visible), re.sub(r"\s+", "", qa))
+                    count += 1
+        self.assertEqual(count, 144)
+
     def test_wrong_target_cannot_reuse_journal(self):
         self.runner().save()
         with self.assertRaisesRegex(m.MigrationError, "different plan or target"):

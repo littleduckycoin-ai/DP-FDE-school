@@ -29,6 +29,7 @@ DIRECT_STATUS = "creation_receipts_verified_directory_reconciliation_pending"
 read_json, save_json, sha = base.read_json, base.save_json, base.sha
 verify_plan, convert_markdown, reflection_data = base.verify_plan, base.convert_markdown, base.reflection_data
 marker_block = base.marker_block
+preserve_literal_qa_backslashes = base.preserve_literal_qa_backslashes
 
 
 class ReceiptTransport:
@@ -270,6 +271,7 @@ def apply_plan(plan, target, state_path, transport, selected, rules_file):
         text += "\n\n## 原访谈逐页查阅\n" + "\n".join(f"- [PDF物理页 {n}]({url})" for n, url in pages.items())
         c = read_json(runner.root / case["json_file"])
         qa = [q["original_block"] for q in c["provenance"]["original_qa"]]
+        text = preserve_literal_qa_backslashes(text, qa)
         doc = runner.doc("base-doc:" + cid, base, case["learning_title"], text, qa, len(case["images"]))
         migrated_reflections = []
         for rel in case["reflections"]:

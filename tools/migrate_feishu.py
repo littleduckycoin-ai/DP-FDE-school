@@ -666,6 +666,22 @@ def convert_markdown(root, rel, page_urls, file_urls):
     return re.sub(r"(!?)\[([^\]]*)\]\(([^)]+)\)", link, text)
 
 
+def preserve_literal_qa_backslashes(markdown, original_qa):
+    """Escape literal source backslashes only inside uniquely identified QA text."""
+    spans = []
+    for block in original_qa:
+        if not isinstance(block, str) or not block or markdown.count(block) != 1:
+            raise MigrationError("Each original QA block must occur exactly once before Markdown import")
+        start = markdown.index(block)
+        spans.append((start, start + len(block), block))
+    spans.sort()
+    if any(left[1] > right[0] for left, right in zip(spans, spans[1:])):
+        raise MigrationError("Original QA blocks overlap before Markdown import")
+    for start, end, block in reversed(spans):
+        markdown = markdown[:start] + block.replace("\\", "\\\\") + markdown[end:]
+    return markdown
+
+
 def apply_plan(plan, target, state_path, transport, selected, rules_file):
     verify_plan(plan)
     parent = target.get("parent", {})
@@ -716,6 +732,7 @@ def apply_plan(plan, target, state_path, transport, selected, rules_file):
         text += "\n\n## 原访谈逐页查阅\n" + "\n".join(f"- [PDF物理页 {n}]({url})" for n, url in pages.items())
         c = read_json(runner.root / case["json_file"])
         qa = [q["original_block"] for q in c["provenance"]["original_qa"]]
+        text = preserve_literal_qa_backslashes(text, qa)
         doc = runner.doc("base-doc:" + cid, base, case["learning_title"], text, qa, len(case["images"]))
         migrated_reflections = []
         for rel in case["reflections"]:
