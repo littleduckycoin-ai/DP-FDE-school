@@ -15,6 +15,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import time
 import sys
 from urllib.parse import unquote, urlsplit
 
@@ -216,6 +217,30 @@ def marker_block(tag, value):
     return code_block(tag + "\n" + json.dumps(value, ensure_ascii=False, indent=2) + "\n" + end)
 
 
+def decode_marker_block(block):
+    """Read complete native code-block records, never a marker in readable prose."""
+    if block.get("block_type") != 14:
+        return None
+    text = block_text([block]).replace("\r\n", "\n").strip()
+    lines = text.splitlines()
+    endings = {"school-manifest-v1": "school-manifest-end", "school-record-meta-v1": "school-record-meta-end", "school-interaction-v1": "school-interaction-end"}
+    if not lines or lines[0] not in endings:
+        return None
+    tag = lines[0]
+    if len(lines) < 3 or lines[-1] != endings[tag]:
+        raise MigrationError("Structured code block is incomplete: " + tag)
+    try:
+        payload = json.loads("\n".join(lines[1:-1]))
+    except (TypeError, ValueError) as error:
+        raise MigrationError("Structured code block contains invalid JSON: " + tag) from error
+    if not isinstance(payload, dict):
+        raise MigrationError("Structured code block must contain a JSON object: " + tag)
+    identity = (tag, payload.get("interaction_id") if tag == "school-interaction-v1" else None)
+    if tag == "school-interaction-v1" and not isinstance(identity[1], str):
+        raise MigrationError("Structured interaction is missing its stable ID")
+    return identity, canonical(payload)
+
+
 class LarkTransport:
     """Real official CLI transport. Shell=False; secrets remain in CLI credential store."""
     def __init__(self, root, profile="fde-school", cli=None):
@@ -261,6 +286,13 @@ class LarkTransport:
         def inspect():
             settings = self.call(["drive", "+permission-get-setting", "--token", token, "--type", kind, "--json"])
             members = self.call(["drive", "+member-list", "--token", token, "--type", kind, "--json"])
+            # Fresh creations can precede collaborator-index visibility. Re-read
+            # only this exact known resource; never treat an empty ACL as private.
+            for attempt in range(3):
+                if members.get("items") != [] or members.get("has_more"):
+                    break
+                time.sleep(0.4 * (2 ** attempt))
+                members = self.call(["drive", "+member-list", "--token", token, "--type", kind, "--json"])
             public, items = settings.get("permission_public"), members.get("items")
             if not isinstance(public, dict) or not isinstance(items, list) or not items or members.get("has_more"):
                 raise MigrationError("Private permission inspection is incomplete; refusing to assume owner-only access")
@@ -347,10 +379,10 @@ class LarkTransport:
             d = self.api("GET", f"/open-apis/docx/v1/documents/{token}/blocks", params=params)
             rows, cursor = list_page(d, "items", seen)
             for row in rows:
-                token = row.get("block_id") if isinstance(row, dict) else None
-                if not token or token in ids:
+                block_id = row.get("block_id") if isinstance(row, dict) else None
+                if not block_id or block_id in ids:
                     raise MigrationError("Missing or repeated block ID in document pagination")
-                ids.add(token)
+                ids.add(block_id)
             items += rows
             if not cursor: return items
 
@@ -553,7 +585,6 @@ class Runner:
         return self.ensure(key, parent, title, "docx", lambda: self.transport.document(parent, title, markdown), verify)
 
     def append_markers(self, key, doc, blocks, expected):
-        if self.state["operations"].get(key, {}).get("status") == "done": return
         matches = [op for op in self.state["operations"].values()
                    if op.get("status") == "done" and op.get("kind") == "docx"
                    and op.get("resource", {}).get("token") == doc["token"]]
@@ -562,13 +593,50 @@ class Runner:
         parent = matches[0]["parent"]
         self.check_parent(parent)
         self.check_resource(parent, doc, "docx")
-        actual = block_text(self.transport.blocks(doc["token"]))
-        if expected not in actual:
-            self.transport.append_blocks(doc["token"], blocks, self.plan["plan_id"] + ":" + doc["token"] + ":" + key)
-        actual = block_text(self.transport.blocks(doc["token"]))
-        if expected not in actual:
-            raise MigrationError(f"Structured block failed readback: {key}")
-        self.state["operations"][key] = {"status": "done", "kind": "append"}
+        desired = {}
+        for block in blocks:
+            decoded = decode_marker_block(block)
+            if decoded is None or decoded[0] in desired:
+                raise MigrationError("Append requires unique complete structured code blocks")
+            desired[decoded[0]] = decoded[1]
+        if not desired or expected not in block_text(blocks):
+            raise MigrationError("Append verification marker does not match its full payload")
+        payload_hash = sha(canonical(sorted((list(identity), payload) for identity, payload in desired.items())))
+        op = self.state["operations"].get(key)
+        if op and (op.get("kind") != "append" or op.get("document_id", doc["token"]) != doc["token"]
+                   or op.get("payload_sha256", payload_hash) != payload_hash):
+            raise MigrationError("Structured append journal does not match this document and payload")
+
+        def verified():
+            found = {}
+            for actual in self.transport.blocks(doc["token"]):
+                decoded = decode_marker_block(actual)
+                if decoded is None or decoded[0] not in desired:
+                    continue
+                identity, payload = decoded
+                if identity in found or payload != desired[identity]:
+                    raise MigrationError("Structured code block conflicts with the full expected content: " + key)
+                found[identity] = payload
+            if found and len(found) != len(desired):
+                raise MigrationError("Structured code-block batch is incomplete; existing content was not changed: " + key)
+            return len(found) == len(desired)
+
+        # Old journals have only kind/status. They can be upgraded only after
+        # the complete payload is found in this already-bound target document.
+        if not verified():
+            if op:
+                raise MigrationError("Structured append is missing from its recorded target; outcome needs reconciliation, not a blind retry: " + key)
+            self.state["operations"][key] = {"status": "started", "kind": "append", "document_id": doc["token"], "payload_sha256": payload_hash}
+            self.save()
+            try:
+                self.transport.append_blocks(doc["token"], blocks, self.plan["plan_id"] + ":" + doc["token"] + ":" + key)
+            except (MigrationError, OSError, subprocess.TimeoutExpired) as error:
+                if not verified():
+                    raise MigrationError("Structured append outcome is unverified; retain the journal and re-read this target before any retry: " + key) from error
+            else:
+                if not verified():
+                    raise MigrationError("Structured block failed full-content readback: " + key)
+        self.state["operations"][key] = {"status": "done", "kind": "append", "document_id": doc["token"], "payload_sha256": payload_hash}
         self.save()
 
 
@@ -621,7 +689,7 @@ def apply_plan(plan, target, state_path, transport, selected, rules_file):
     if old_digest and old_digest != rules_digest:
         raise MigrationError("Rules changed during migration; finish or explicitly start a new migration")
     runner.state["rules_sha256"] = rules_digest
-    rules = runner.doc("rules", school, "学校规则", rules_text, [rules_text.splitlines()[0]])
+    rules = runner.doc("rules", school, "学校规则", rules_text, [re.sub(r"^#{1,6}\s+", "", rules_text.splitlines()[0])])
     for case in plan["cases"]:
         cid = case["case_id"]
         if case["id"] not in selected:
@@ -658,7 +726,7 @@ def apply_plan(plan, target, state_path, transport, selected, rules_file):
             rd = runner.doc("reflection:" + rel, reflections, title, human, [x["text"] for i in interactions for x in i.get("contributions", [])])
             runner.append_markers("reflection-meta:" + rel, rd, [marker_block("school-record-meta-v1", meta)], "school-record-meta-v1")
             for interaction in interactions:
-                runner.append_markers("interaction:" + interaction["interaction_id"], rd, [marker_block("school-interaction-v1", interaction)], '"interaction_id": "' + interaction["interaction_id"] + '"')
+                runner.append_markers("interaction:" + rel + ":" + interaction["interaction_id"], rd, [marker_block("school-interaction-v1", interaction)], '"interaction_id": "' + interaction["interaction_id"] + '"')
             migrated_reflections.append({"source_path": rel, "source_sha256": plan["files"][rel], "document_id": rd["token"], "url": rd["url"], **meta})
         for rel in case["canon"]:
             runner.doc("canon-doc:" + rel, canon, Path(rel).stem, convert_markdown(runner.root, rel, pages, file_urls))
