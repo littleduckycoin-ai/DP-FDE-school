@@ -171,12 +171,70 @@ class MigrationTests(unittest.TestCase):
         interaction = {"interaction_id": "preserved-original-id", "contributions": [{"text": "原话", "entry_id": "entry-unchanged"}]}
         blocks = [m.marker_block("school-interaction-v1", interaction)]
         self.transport.fail_append_once = True
-        with self.assertRaises(m.MigrationError):
-            r.append_markers("i", doc, blocks, '"interaction_id": "preserved-original-id"')
+        r.append_markers("i", doc, blocks, '"interaction_id": "preserved-original-id"')
         before = self.transport.write_count
         self.runner().append_markers("i", doc, blocks, '"interaction_id": "preserved-original-id"')
         self.assertEqual(self.transport.write_count, before)
         self.assertEqual(m.block_text(self.transport.blocks(doc["token"])).count('"interaction_id": "preserved-original-id"'), 1)
+
+    def test_completed_append_detects_changed_or_missing_full_payload_without_writing(self):
+        r = self.runner()
+        doc = r.doc("r", self.target["parent"], "reflection", "学员原话")
+        wanted = m.marker_block("school-interaction-v1", {"interaction_id": "turn", "text": "完整原话"})
+        r.append_markers("turn", doc, [wanted], '"interaction_id": "turn"')
+        remote = self.transport.objects[doc["token"]]["blocks"]
+        remote[-1] = m.marker_block("school-interaction-v1", {"interaction_id": "turn", "text": "被改写"})
+        before = self.transport.write_count
+        with self.assertRaisesRegex(m.MigrationError, "conflicts with the full"):
+            self.runner().append_markers("turn", doc, [wanted], '"interaction_id": "turn"')
+        remote.pop()
+        with self.assertRaisesRegex(m.MigrationError, "missing from its recorded target"):
+            self.runner().append_markers("turn", doc, [wanted], '"interaction_id": "turn"')
+        self.assertEqual(self.transport.write_count, before)
+
+    def test_marker_in_prose_is_not_a_record_and_truncated_code_stops_append(self):
+        r = self.runner()
+        doc = r.doc("r", self.target["parent"], "manifest", "说明中提及 school-manifest-v1")
+        wanted = m.marker_block("school-manifest-v1", {"cases": [1, 2], "rules": "verified"})
+        r.append_markers("manifest", doc, [wanted], "school-manifest-v1")
+        remote = self.transport.objects[doc["token"]]["blocks"]
+        self.assertEqual(sum(b["block_type"] == 14 for b in remote), 1)
+        remote[-1] = m.code_block('school-manifest-v1\n{"cases": [1')
+        before = self.transport.write_count
+        with self.assertRaisesRegex(m.MigrationError, "incomplete"):
+            self.runner().append_markers("manifest", doc, [wanted], "school-manifest-v1")
+        self.assertEqual(self.transport.write_count, before)
+
+    def test_legacy_done_key_is_adopted_only_from_full_bound_document_readback(self):
+        r = self.runner()
+        doc = r.doc("r", self.target["parent"], "reflection", "学员原话")
+        wanted = m.marker_block("school-interaction-v1", {"interaction_id": "legacy-turn", "text": "旧记录"})
+        self.transport.objects[doc["token"]]["blocks"].append(wanted)
+        r.state["operations"]["interaction:legacy-turn"] = {"status": "done", "kind": "append"}
+        r.save()
+        before = self.transport.write_count
+        new_key = "interaction:cases/case-01/reflections/alice.md:legacy-turn"
+        self.runner().append_markers(new_key, doc, [wanted], "legacy-turn")
+        self.assertEqual(self.transport.write_count, before)
+        adopted = m.read_json(self.state)["operations"][new_key]
+        self.assertEqual(adopted["document_id"], doc["token"])
+        self.assertTrue(adopted["payload_sha256"])
+
+    def test_unknown_append_keeps_intent_and_does_not_blindly_repeat_post(self):
+        r = self.runner()
+        doc = r.doc("r", self.target["parent"], "reflection", "学员原话")
+        wanted = m.marker_block("school-interaction-v1", {"interaction_id": "turn", "text": "原话"})
+        calls = []
+        def unknown(*args):
+            calls.append(args)
+            raise m.MigrationError("transport outcome unknown")
+        self.transport.append_blocks = unknown
+        with self.assertRaisesRegex(m.MigrationError, "outcome is unverified"):
+            r.append_markers("turn", doc, [wanted], "turn")
+        with self.assertRaisesRegex(m.MigrationError, "not a blind retry"):
+            self.runner().append_markers("turn", doc, [wanted], "turn")
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(m.read_json(self.state)["operations"]["turn"]["status"], "started")
 
     def test_missing_images_fail_readable_document_verification(self):
         with self.assertRaisesRegex(m.MigrationError, "Missing visible image"):
@@ -214,6 +272,39 @@ class MigrationTests(unittest.TestCase):
         self.assertIn("我觉得很好", restored)
         self.assertIn("school-record-meta-end", restored)
         self.assertIn("school-interaction-end", restored)
+
+    def test_literal_qa_escaping_keeps_links_images_and_mermaid_unchanged(self):
+        prefix = '# 案例\n[链接](https://example.org/a?q=1)\n![图片](@./image.png)\n```mermaid\nA["第一行\\n第二行"]\n```\n'
+        qa = 'Q1：系统有\\.NET，识图\\+回填，Know\\-how，5\\~6，loop\\)。'
+        suffix = '\n[原访谈](https://example.org/original.pdf#page=8)\n'
+        source = prefix + qa + suffix
+        escaped = m.preserve_literal_qa_backslashes(source, [qa])
+        self.assertEqual(escaped, prefix + 'Q1：系统有\\\\.NET，识图\\\\+回填，Know\\\\-how，5\\\\~6，loop\\\\)。' + suffix)
+        self.assertEqual(source, prefix + qa + suffix)
+
+    def test_literal_qa_escaping_refuses_missing_duplicate_and_overlapping_ranges(self):
+        for source, blocks in [('没有原文', ['Q1 原文']), ('Q1 原文\nQ1 原文', ['Q1 原文']), ('Q1 原文', ['Q1 原文', '原文'])]:
+            with self.subTest(source=source, blocks=blocks):
+                with self.assertRaises(m.MigrationError):
+                    m.preserve_literal_qa_backslashes(source, blocks)
+
+    @unittest.skipUnless(importlib.util.find_spec("markdown_it"), "optional CommonMark parser is unavailable")
+    def test_all_original_qa_roundtrip_through_commonmark_preserves_full_text(self):
+        from markdown_it import MarkdownIt
+        parser = MarkdownIt("commonmark")
+        count = 0
+        for path in sorted((ROOT / "cases").glob("case-*/base/case.json")):
+            original_qa = [q["original_block"] for q in m.read_json(path)["provenance"]["original_qa"]]
+            source = path.with_suffix(".md").read_text(encoding="utf-8")
+            # This also checks all 144 source ranges are unambiguous before import.
+            m.preserve_literal_qa_backslashes(source, original_qa)
+            for qa in original_qa:
+                with self.subTest(case=path.parent.parent.name, question=qa.splitlines()[0]):
+                    escaped = m.preserve_literal_qa_backslashes(qa, [qa])
+                    visible = "\n".join("".join(t.content if t.type in ("text", "code_inline", "html_inline") else "\n" if t.type in ("softbreak", "hardbreak") else "" for t in block.children or []) for block in parser.parse(escaped) if block.type == "inline")
+                    self.assertEqual(re.sub(r"\s+", "", visible), re.sub(r"\s+", "", qa))
+                    count += 1
+        self.assertEqual(count, 144)
 
     def test_wrong_target_cannot_reuse_journal(self):
         self.runner().save()
@@ -342,6 +433,35 @@ class MigrationTests(unittest.TestCase):
             with self.assertRaisesRegex(m.MigrationError, "verified OAuth owner"):
                 transport.verify_identity("ou_owner")
 
+    def test_block_pagination_keeps_the_original_document_id(self):
+        transport = m.LarkTransport(self.root, cli="fake")
+        calls = []
+        def api(method, path, **kwargs):
+            calls.append((path, kwargs["params"]))
+            if len(calls) == 1:
+                return {"items": [{"block_id": "child01"}], "has_more": True, "page_token": "page02"}
+            return {"items": [{"block_id": "child02"}], "has_more": False}
+        transport.api = api
+        self.assertEqual(len(transport.blocks("original_doc")), 2)
+        self.assertEqual([path for path, params in calls], ["/open-apis/docx/v1/documents/original_doc/blocks"] * 2)
+        self.assertEqual(calls[1][1]["page_token"], "page02")
+
+    def test_fresh_resource_waits_for_visible_owner_without_assuming_empty_acl(self):
+        transport = m.LarkTransport(self.root, cli="fake")
+        calls = []
+        def call(args):
+            calls.append(args)
+            if args[1] == "+permission-get-setting":
+                return {"permission_public": {"link_share_entity": "closed"}}
+            reads = sum(a[1] == "+member-list" for a in calls)
+            return {"items": [] if reads == 1 else [{"member_type": "openid", "member_id": "ou_owner", "perm": "full_access"}]}
+        transport.call = call
+        with patch.object(m.time, "sleep"):
+            result = transport.ensure_private({"type": "folder", "token": "new_folder"}, "ou_owner")
+        self.assertEqual(result["status"], "owner_only_verified")
+        self.assertEqual(sum(a[1] == "+member-list" for a in calls), 2)
+        self.assertTrue(all(a[a.index("--token") + 1] == "new_folder" for a in calls))
+
     def test_real_transport_normalizes_private_docx_settings_and_verifies_readback(self):
         transport = m.LarkTransport(self.root, cli="fake")
         public = {"external_access_entity": "open", "link_share_entity": "tenant_readable"}
@@ -439,9 +559,13 @@ class MigrationTests(unittest.TestCase):
             self.plan["pages"][str(number)] = {"path": page, "sha256": self.plan["files"][page]}
             self.file(rel, f"# 案例{number}\n{qa}\n[原文](../../../sources/original-interviews.pdf#page={number})")
             self.file(jrel, json.dumps({"provenance": {"original_qa": [{"original_block": qa}]}}))
+            reflection = f"cases/{cid}/reflections/learner{number}-2026-09-11.md"
+            record = {"case_id": cid, "learner_id": f"learner{number}", "study_date": "2026-09-11",
+                      "interactions": [{"interaction_id": "same-turn-id", "contributions": [{"text": f"学员{number}的原话"}]}]}
+            self.file(reflection, f"学员{number}的原话\n<!-- school-record-v1\n" + json.dumps(record, ensure_ascii=False) + "\n-->")
             self.plan["cases"].append({"id": number, "case_id": cid, "learning_title": f"案例{number}",
                 "one_sentence_intro": "具体项目简介", "source_pdf_page_range": [number, number],
-                "markdown_file": rel, "json_file": jrel, "images": [img], "reflections": [], "canon": [],
+                "markdown_file": rel, "json_file": jrel, "images": [img], "reflections": [reflection], "canon": [],
                 "qa_hashes": {"Q1": m.sha(qa)}, "page_text_sha256": m.sha(qa)})
         first = m.apply_plan(self.plan, self.target, self.state, self.transport, {1}, rules)
         self.assertEqual(len(first["cases"]), 1)
@@ -449,6 +573,10 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(len(second["cases"]), 2)
         self.assertEqual(second["cases"][0]["base_document_id"], first["cases"][0]["base_document_id"])
         self.assertEqual([c["source_page_links"][0]["pdf_page"] for c in second["cases"]], [1, 2])
+        for case in second["cases"]:
+            reflection_doc = case["migrated_reflections"][0]["document_id"]
+            native = [m.decode_marker_block(b) for b in self.transport.blocks(reflection_doc)]
+            self.assertEqual(sum(value is not None and value[0] == ("school-interaction-v1", "same-turn-id") for value in native), 1)
         before = self.transport.write_count
         final = m.apply_plan(self.plan, self.target, self.state, self.transport, {1, 2}, rules)
         self.assertEqual(self.transport.write_count, before)

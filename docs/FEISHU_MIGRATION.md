@@ -104,7 +104,7 @@ Windows 下工具优先调用 npm 包内的原生 `lark-cli.exe`，避免 PowerS
 - 同名多个结果：停止，维护者明确应使用哪份后再恢复。
 - 进程异常退出留下 `.lock`：确认没有其他迁移进程在运行，再删除该锁文件；不要删除 `state.json`。
 
-结构化 reflection/manifest 追加使用官方 Docx block API，稳定的 `client_token` 由计划 ID、目标文档 ID 与操作 ID 生成；写后重新读取核验。该 token 用于同一请求重试去重，不代表跨文档事务，也不代表无限期的全局唯一约束。
+结构化 reflection/manifest 追加使用官方 Docx block API，稳定的 `client_token` 由计划 ID、目标文档 ID 与操作 ID 生成；写后和续传时都重新读取原生 code block，核对完整 JSON，不能仅凭正文中的标记文字认定成功。同一 ID 的内容冲突、截断、缺失或重复都会停止；超时但完整回读成功时不再次追加。该 token 用于同一请求重试去重，不代表跨文档事务，也不代表无限期的全局唯一约束。
 
 ## 5. Agent 使用的输出约定
 
@@ -136,10 +136,30 @@ Windows 下工具优先调用 npm 包内的原生 `lark-cli.exe`，避免 PowerS
 
 连接信息文档的原生 code block 文本使用 `school-manifest-v1` 与 `school-manifest-end` 包围完整 JSON。reflection 使用 `school-record-meta-v1` / `school-record-meta-end` 包围原身份元数据；每个 interaction 使用 `school-interaction-v1` / `school-interaction-end`。普通学习过程中不得将学员记录写入文档评论区或 Issue。
 
-## 验证
+## 目录权限仍在审批时先导入
+
+已授权的文档创建、图片上传和文件上传能力，可以直接指向已知的本人私人文件夹，不需要先列出文件夹。此时可用独立的 `tools/migrate_feishu_direct.py`，原有迁移模式的目录核验要求保持不变。
+
+仅在维护者明确指定目标、本人 OAuth 已核验且目标仅本人可见时使用。沿用含 `use_parent_as_school: true`、`private_owner_open_id` 的本地 target 配置，但使用独立的 state：
 
 ```powershell
-py -X utf8 -m unittest discover -s tests -p test_feishu_migration.py -v
+py -X utf8 tools/migrate_feishu_direct.py `
+  --plan .school/feishu-migration/plan.json `
+  --target .school/feishu-migration/target.json `
+  --state .school/feishu-direct/direct-state.json `
+  --profile fde-school --cases 01 --execute
+```
+
+单例回读验收通过后，将 `--cases 01` 换为 `--all`，继续使用同一 state。工具只操作显式根目录及本任务实际创建的资源，不调用未获授权的目录列表、搜索或其他身份。它保存创建前的意图与创建后的资源 ID、父目录和回执签名，续传先验证这些记录；不会根据标题收养已有文件。签名密钥与 state 都只保存在忽略提交的维护目录，不发布到仓库。
+
+创建超时且没有资源 ID 时立即停止，不重新创建或换接口搜索；待目录权限获批后，对指定私人目录核对该操作再处理。回执签名只能帮助识别任务日志被改动，不能替代飞书服务端目录查询。此模式仍逐个核验权限、原文、图片和附件哈希，结果明确标为目录对账待完成，不切换公共学校入口。
+
+文档与 JSON 附件可以先构成可阅读、可机读的案例库；这不等于已经建立飞书多维表格。创建多维表格和写入记录须分别具备相应权限，不能从 `base:app:update` 推定。
+
+## 运行校验
+
+```powershell
+py -X utf8 -m unittest discover -s tests -p "test_feishu_*.py" -v
 ```
 
 测试涵盖真实原库哈希与 QA 数量、源文件变更阻止写入、创建/追加超时后的恢复与去重、图片丢失检测、同名归档文件不混淆、历史身份与条目 ID 保留、错误目标拒绝复用状态。fake transport 验证算法，不替代真实租户中的 OAuth、ACL、图片呈现和跨设备 PDF 点击验收。
