@@ -32,6 +32,39 @@ test('CLI puts bodies on stdin, never builds a shell command',()=>{
   cli.api('POST','/open-apis/docx/v1/documents',{}, {title:'literal $(secret) `stuff`'});
   assert.equal(captured.options.shell,false);assert.equal(captured.options.input,'{"title":"literal $(secret) `stuff`"}');assert.ok(!captured.args.join(' ').includes('secret'));
 });
+test('school API and document creation always request user identity on the selected profile',()=>{
+  const calls=[];
+  const cli=new LarkCli({executable:'fake',profile:'fde-school',runner:(_file,args)=>{
+    calls.push(args);return {status:0,stdout:JSON.stringify({ok:true,identity:'user',data:{}})};
+  }});
+  cli.api('GET','/open-apis/drive/v1/files',{folder_token:'school'});
+  const school=new SchoolClient(cli);
+  cli.identity=()=>actor;
+  school.learnerArchive=()=>[];
+  school.list=()=>[];
+  assert.throws(()=>school.append(manifest,1,payload()),/创建文档未返回ID/);
+  assert.equal(calls.length,2);
+  for(const args of calls){
+    assert.deepEqual(args.slice(0,2),['--profile','fde-school']);
+    assert.equal(args[args.indexOf('--as')+1],'user');
+    assert.ok(!args.includes('--user'));
+  }
+  assert.ok(calls[1].includes('+create'));
+});
+test('school commands reuse the current CLI profile unless explicitly selected',async()=>{
+  const original=SchoolClient.prototype.manifest,profiles=[];
+  SchoolClient.prototype.manifest=function(){profiles.push(this.lark.profile);return manifest;};
+  try {
+    await main(['index']);
+    await main(['index','--profile','my-account']);
+    assert.deepEqual(profiles,[undefined,'my-account']);
+  } finally {SchoolClient.prototype.manifest=original;}
+});
+test('an explicit bot success cannot pass as a user operation',()=>{
+  const cli=new LarkCli({executable:'fake',runner:()=>({status:0,stdout:'{"ok":true,"identity":"bot","data":{}}'})});
+  assert.throws(()=>cli.api('GET','/open-apis/drive/v1/files'),e=>e.code==='identity_mismatch');
+  assert.throws(()=>cli.call(['docs','+create','--as','user']),e=>e.code==='identity_mismatch');
+});
 test('markers parse braces and marker-looking text within JSON strings',()=>{
   const json={text:'brace } and \\" and school-interaction-v1\n{fake}',nested:{ok:true}};
   assert.deepEqual(markedJson('school-interaction-v1\n'+JSON.stringify(json)+'\nschool-interaction-end','school-interaction-v1'),[json]);

@@ -56,6 +56,7 @@ export class LarkCli {
     try { value=JSON.parse((out.status===0?out.stdout:out.stderr)||out.stdout||''); }
     catch { throw new SchoolError('cli_failed',redact((out.stderr||out.stdout||'CLI未返回可验证JSON').slice(0,1600))); }
     if (out.status!==0 && value.ok!==false) throw new SchoolError('cli_failed','飞书工具未成功退出');
+    if (value.ok!==false && args.includes('--as') && args[args.indexOf('--as')+1]==='user' && value.identity && value.identity!=='user') throw new SchoolError('identity_mismatch','飞书返回的执行身份不是 user，不能按本人操作报告成功。');
     return unwrap(value);
   }
   api(method,path,params={},body) {
@@ -363,7 +364,7 @@ function argsOf(argv) {
 export async function main(argv=process.argv.slice(2)) {
   const {action,options}=argsOf([...argv]);
   if(action==='help'||action==='--help'||options.help)return {usage:'node feishu_school.mjs <doctor|bootstrap|index|case|reflections|append|meeting> [--manifest <Feishu Docx/Wiki URL>] [--profile <CLI profile>]',commands:{doctor:'检查工具/本人登录；不输出凭据',bootstrap:'直接读取飞书学校当前目录与规则',index:'列案例',case:'--case 01，读完整基础文档及原PDF页链接',reflections:'--case 01 [--cutoff ISO-with-timezone]',append:'--case 01 --input -（JSON经stdin）或明确授权的输入文件',meeting:'--cases 01,02 [--cutoff ISO-with-timezone]（返回全部记录与来源）'},limits:'不安装其他Skills，不落地教材；首次安装CLI/OAuth由Agent协助。发布/权限需维护者真实审核。'};
-  const lark=new LarkCli({profile:options.profile||'fde-school'}),school=new SchoolClient(lark);
+  const lark=new LarkCli({profile:options.profile}),school=new SchoolClient(lark);
   if(action==='doctor'){const executable=findCli();return {cli:executable,identity:lark.identity(),ready:true};}
   requireValue(!options['router-url'],'此 Skill 只连接飞书，不支持旧路由参数');
   const manifestUrl=options.manifest||SCHOOL_MANIFEST;

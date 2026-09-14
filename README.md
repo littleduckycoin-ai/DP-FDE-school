@@ -18,7 +18,7 @@ npx skills add littleduckycoin-ai/DP-FDE-school --skill school-guide
 
 > 使用 school-guide，帮我完成首次飞书连接，再开始第一个案例。
 
-Agent 会检查连接工具、复用可用配置，并协助本人授权。**安装 Skill 不等于已连接飞书，也不等于获得学校文档权限。** 没有应用配置时，Agent 会说明个人应用与管理员配置两种方式，确认后再继续；不会替学员绕过组织审批或索取聊天中的密钥。
+Agent 缺 CLI 时安装，优先复用当前本人连接；未登录才申请文档、云盘和目录权限，并提供真实授权链接与二维码。所有学校读写显式使用 **`--as user`**，不用机器人，不强制创建应用、专用 profile 或额外登录服务。完全缺少应用配置时才说明必要步骤，由用户选择；不索取聊天中的密钥。登录成功与学校资料访问成功分别核验。
 
 [学校首页](https://dptechnology.feishu.cn/docx/J5Uad8uqAoBNtyxkWfKcCSbZnQb) · [首次连接说明](skills/school-guide/references/feishu-connection.md)
 

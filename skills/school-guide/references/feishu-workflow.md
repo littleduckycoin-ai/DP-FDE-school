@@ -1,6 +1,6 @@
 # 飞书工作流
 
-所有命令从已安装的 Skill 目录执行，脚本默认使用内置学校目录和 `fde-school` profile。首次缺连接时读[首次授权](feishu-connection.md)。维护者明确指定其他学校入口时才使用 `--manifest <飞书文档链接>`；使用其他本人已授权 profile 时，所有命令保持一致。
+所有命令从已安装的 Skill 目录执行，脚本默认使用内置学校目录，复用 CLI 当前配置的本人连接，不强制 `fde-school` profile。首次缺连接时读[首次授权](feishu-connection.md)。维护者明确指定其他学校入口时才使用 `--manifest <飞书文档链接>`；使用其他本人已授权 profile 时，所有命令保持一致。
 
 ## 读取与操作
 

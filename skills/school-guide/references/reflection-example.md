@@ -30,7 +30,7 @@
 }
 ```
 
-Agent 将 JSON 安全传入标准输入，运行 `node scripts/feishu_school.mjs append --case 01 --input - --profile fde-school`。不要把用户文本拼接成 shell 命令。学员不需要编辑 JSON 或手动运行命令。
+Agent 将 JSON 安全传入标准输入，运行 `node scripts/feishu_school.mjs append --case 01 --input -`。不要把用户文本拼接成 shell 命令。学员不需要编辑 JSON 或手动运行命令。
 
 正文由脚本生成：作者和日期、轮次时间与主题、标注类型的用户表达、来源、单列的 Agent 反馈与待验证建议。脚本同时写原生代码块：唯一 `school-record-meta-v1` 元数据和每轮 `school-interaction-v1`，供后续 Agent 精确读取、去重和汇总；不要自行删掉这些标记。
 
