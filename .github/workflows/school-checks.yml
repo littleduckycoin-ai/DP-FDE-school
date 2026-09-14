@@ -12,22 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate school materials
-        run: python tools/validate.py
-      - name: Preserve existing learner history
-        if: github.event_name == 'pull_request'
+      - name: Test skill and Feishu adapter
+        run: node --test tests/*.mjs
+      - name: Verify complete Skills CLI installation
         env:
-          SCHOOL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: python tools/validate.py --base-ref "$SCHOOL_BASE_SHA"
-      - name: Test recording and meeting workflows
-        run: python -m unittest discover -s tests -v
-      - name: Test Feishu online adapter
-        run: node --test tests/test_feishu_school.mjs
+          DISABLE_TELEMETRY: '1'
+        run: |
+          cd "$(mktemp -d)"
+          npx --yes skills add "$GITHUB_WORKSPACE" --skill school-guide -a codex -y --copy
+          diff -r "$GITHUB_WORKSPACE/skills/school-guide" .agents/skills/school-guide
+          node .agents/skills/school-guide/scripts/feishu_school.mjs --help

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SchoolClient,SchoolError,LarkCli,unwrap,markedJson,parseReflection,codeBlock,textBlock,renderInteraction,validatePayload,meetingData,main,SCHOOL_MANIFEST} from '../.codex/skills/school-guide/scripts/feishu_school.mjs';
+import {SchoolClient,SchoolError,LarkCli,unwrap,markedJson,parseReflection,codeBlock,textBlock,renderInteraction,validatePayload,meetingData,main,SCHOOL_MANIFEST} from '../skills/school-guide/scripts/feishu_school.mjs';
 
 const row={id:1,case_id:'case-01-manufacturing-training',base_document_id:'base01',source_pdf_pages:[8,9],reflections_parent:{type:'folder',token:'folder01'}};
 const manifest={schema_version:'feishu-school-v1',school_id:'fde-school',rules_document_id:'rules',cases:[row]};

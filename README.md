@@ -1,59 +1,64 @@
-# FDE AI School
+# 飞书 FDE 学校 · school-guide
 
-**给Agent一个学校链接，让它在线读案例，带你学习。**
+一个 Skill，完成 FDE 案例学习、署名反馈和会前整理。教材、规则和学习记录只在飞书读写；本仓库只分发 Skill。
 
-学员使用 Codex 和一个 school-guide Skill，Agent 在每轮需要资料时访问线上来源，结合你的问题讲解、追问和比较，让同一份在线知识服务不同学习者。
+## 安装
 
-学校正在接入飞书文档：案例、署名学习记录和会议资料将由飞书承载，GitHub 保留 Skill 与连接工具的分发入口。**当前仍使用 GitHub 资料库；飞书登录、迁移与权限验收完成后才切换。**实际状态以[后端入口](data/school-backend.json)为准。[飞书学习说明](docs/feishu-learning.md)
-
-案例事实的引用会直接打开原访谈PDF的对应物理页；JSON保留给Agent检索和核对，不作为学员默认看到的证据链接。
-
-学习不要求克隆仓库、建立本地项目、安装 Git 或 Python。公开 GitHub 资料可以直接读；飞书切换后，Agent 准备连接工具，学员首次完成本人的飞书授权，并拥有学校文档权限。
-
-## 先安装school-guide
-
-把[school-guide文件夹](https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide)发给Codex：
-
-> 请使用 $skill-installer 安装这个skill：https://github.com/littleduckycoin-ai/DP-FDE-school/tree/main/.codex/skills/school-guide
-
-安装后直接说“使用`$school-guide`，根据我的问题推荐一个案例并开始学习”。[安装说明](INSTALL_SKILL.md)
-
-## 不安装也能开始
-
-> 请在线读取 https://github.com/littleduckycoin-ai/DP-FDE-school/blob/main/START_HERE.md ，按照其中的线上教学规则带我学习。每轮需要资料时读取线上当前版本，不建立本地教材副本。先用10分钟带我学习案例04，先讲清项目，再围绕我的判断展开讨论，并给出出处。
-
-[安装skill](INSTALL_SKILL.md) · [直接开始学习](START_HERE.md) · [24个案例](cases/README.md) · [学习方法](HOW_TO_LEARN.md) · [如何留下思考](docs/contributing.md)
-
-## 一所持续生长的学校
-
-```mermaid
-flowchart LR
-  A[学员发链接和学习目标] --> B[Agent在线读取相关资料]
-  B --> C[讲解、追问与讨论]
-  C --> D[署名反馈写入案例reflections]
-  D --> E[会前实时汇总问题与分歧]
-  E --> F[审核后沉淀拆解与模式]
-  F --> B
+```bash
+npx skills add littleduckycoin-ai/DP-FDE-school --skill school-guide
 ```
 
-| 在线资料 | 学习时如何使用 |
-|---|---|
-| `cases/<case-id>/base/` | 24个基础案例：口语化简介、行业约束、解法形成、交付与成效、完整访谈和原图 |
-| `cases/<case-id>/reflections/` | 每位学员的署名知识文件，保存思考、评价、问题、分歧和修订 |
-| `cases/<case-id>/canon/` | 经PR审核的案例拆解；待审与已审版本分开 |
-| `patterns/` | 跨至少两个案例的方法、适用边界与反例 |
-| `meetings/` | 已发布的会前资料、Agent整理和实际确认的会议决定 |
+按提示选择使用的 Agent。需要跨项目使用时加 `-g`；只安装到 Codex 可加 `-a codex`。安装器会保留整个 Skill 目录，包括 `scripts/` 和 `references/`，不需要另下 ZIP 或手动复制文件。
 
-## 校规
+运行安装命令需要 Node.js/npm 和 Git；连接脚本需要 Node.js 22+。学员不用克隆本仓库或准备本地教材。
 
-访谈事实、教材分析、学员观点和Agent建议分别标明。相近提问不等于共识，Agent给答案不等于学员的问题已解决；原文不足时明确说明。
+## 开始学习
 
-学习者需要署名反馈时提供稳定标识和昵称，并授权本次会话记录。之后 Agent 将有价值的表达逐轮追加到当前资料库对应案例的 reflection 知识正文，保存后给出经核对的链接。没有写入连接时继续教学，并给出待提交正文及具体协助方式。反馈不会进入 Issue、飞书评论或聊天消息，也不会在两处重复保存。
+安装后，在 Agent 新会话中说：
 
-案例教学以当轮线上读取为准。reflection 是署名学习知识，进入共享资料库后即可用于后续学习和会前整理；它仍是个人表达。canon 与 patterns 经过真实维护者审核才成为正式知识。当前 GitHub 记录公开可见；飞书记录按实际文档权限共享，Agent 在首次保存前说明分享范围。
+> 使用 school-guide，帮我完成首次飞书连接，再开始第一个案例。
 
-## 给Agent与维护者
+Agent 会检查连接工具、复用可用配置，并协助本人授权。**安装 Skill 不等于已连接飞书，也不等于获得学校文档权限。** 没有应用配置时，Agent 会说明个人应用与管理员配置两种方式，确认后再继续；不会替学员绕过组织审批或索取聊天中的密钥。
 
-[AGENTS.md](AGENTS.md)是入口，[school-guide](.codex/skills/school-guide/SKILL.md)维护启动规则；Codex和Claude Code的发现入口共用它。[后端入口](data/school-backend.json)声明当前资料库，GitHub 后端仍通过[在线服务索引](data/online-school.json)查找各类 URL。维护者按[飞书迁移说明](docs/FEISHU_MIGRATION.md)执行试迁移、保真检查和正式切换。
+[学校首页](https://dptechnology.feishu.cn/docx/J5Uad8uqAoBNtyxkWfKcCSbZnQb) · [首次连接说明](skills/school-guide/references/feishu-connection.md)
 
-仓库中的脚本和CI服务于维护、验证和归档。它们不是学员的初始化步骤。现有基础案例与144段完整问答保留；[数据结构](data/schema-guide.md)、[来源](sources/README.md)、[在线读取协议](docs/online-protocol.md)、[反馈流程](docs/contributing.md)和[审核规则](docs/governance.md)可按需查阅。
+只读学习不强制登记。需要保存反馈时再提供展示名、稳定学习标识和本次会话记录授权；说“不记录”的内容不会上传。反馈写入对应案例的飞书 reflections 文档正文，成功后返回实际链接，失败则明确待提交。
+
+## 仓库结构
+
+```text
+skills/school-guide/
+  SKILL.md           # 唯一教学入口
+  agents/            # Agent 展示信息
+  scripts/           # 零第三方依赖的飞书连接与记录脚本
+  references/        # 连接、工作流、记录契约与输入示例
+tests/               # 核心行为与安装包完整性测试
+```
+
+不维护多套 Agent 专用副本、自制安装器、ZIP 分发或 GitHub 教材后端。发布只需维护这一份 Skill；安装器负责不同 Agent 的安装位置。
+
+## 维护与验证
+
+```bash
+node --test tests/*.mjs
+```
+
+本地安装验证应在临时目录执行，避免把生成的 Agent 安装目录混进仓库：
+
+```bash
+npx skills add /absolute/path/to/DP-FDE-school --skill school-guide -a codex -y
+```
+
+测试不连接真实飞书或上传虚构学习记录。真实连接、读权限和保存能力须分别核验，不能用单元测试代替。
+
+### 历史归档
+
+清理前版本：`5a2296a8393778d1e1dba5ca9d8615fee05b574a`，本地归档标签：`archive/pre-skills-only`。原始访谈、图片、24 个案例、历史学习记录和迁移工具均保留在该版本，不再作为当前学习入口。清理前已通过旧版校验，并从独立 Git bundle 恢复、逐字节核对全部 260 个受版本管理文件。
+
+维护者可导出历史，不必切换当前工作目录：
+
+```bash
+git archive --format=tar --output=../school-legacy.tar 5a2296a8393778d1e1dba5ca9d8615fee05b574a
+```
+
+独立 bundle 应由维护者妥善保管；发布时将归档标签与更新一起推送。不要重写历史、删除归档或把归档教材重新接入学员学习流程。
