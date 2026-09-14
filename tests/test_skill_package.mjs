@@ -38,6 +38,7 @@ test('help runs without Feishu tooling, credentials or network', async () => {
     const result = await main(['--help']);
     assert.ok(result.commands.bootstrap);
     assert.ok(result.commands.append);
+    assert.ok(result.commands['create-record']);
   } finally { globalThis.fetch = fetch; }
 });
 

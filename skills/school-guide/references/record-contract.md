@@ -25,7 +25,7 @@
 | 学员条目 | `kind`、`text`、`capture`、`confirmation`、`source_refs`、`entry_id`、`relates_to` |
 | 来源 | `case_id`、`case_number`、`pdf_pages`、`note` |
 
-`kind` 只能使用既有类型：`thought`、`evaluation`、`question`、`application`、`disagreement`、`feedback`、`revision`、`question_status`。平台写入者、文档 token、版本和 API 回执放在平台元数据中，不冒充学员条目。
+`kind` 新记录使用 `thought`、`evaluation`、`question`、`application`、`disagreement`、`feedback`、`revision`。旧 `question_status` 仅兼容读取原文，不再新增或推导业务状态。平台写入者、文档 token、版本和 API 回执放在平台元数据中，不冒充学员条目。
 
 - `capture=verbatim` 表示原话；忠实概括用 `paraphrase`。
 - 自动捕获用 `confirmation=captured`；学员明确确认这份记录后才能用 `confirmed`。
@@ -38,11 +38,11 @@
 
 ## 历史与关联
 
-同一请求重试必须复用 `interaction_id`。写前读取目标文档；同 ID 且内容一致时返回既有记录链接。内容不同则创建新的修订 interaction，不能改写旧条目。并发冲突先重读，保留其他会话已追加内容；当前工具无法保证原子性时如实标明，不声称强事务或绝对不重复。
+同一请求重试必须复用 `interaction_id`、原时间、原授权与已返回的 `document_id`。同案例、同学员的 ID 跨日期也不可重复。`create-record` 仅准备文档；`append` 必须带文档 ID，永不隐式新建。创建结果不明时保留回执，重查携带 `retry:true`，查不到不能重建。写前读取目标文档；同 ID 且内容一致时核验正文并返回既有链接。内容不同则创建新的修订 interaction，不能改写旧条目。并发冲突先重读，保留其他会话已追加内容；当前工具无法保证原子性时如实标明，不声称强事务或绝对不重复。
 
 `revision` 用 `target_id` 指向本人的原条目。对同伴的评价写入自己的 reflection，以 `relates_to` 引用对方条目。不得编辑对方观点来代替反馈。
 
-`question_status` 用 `target_id` 指向自己的问题，并提供 `state=open|answered|deferred|discussed`。只有提问者明确表示已解决、重新打开、暂缓或已讨论时才追加对应状态。Agent 回答、主持人整理和多数人意见不能自动关闭问题。
+问题进展保存为提问者的普通原话或忠实概括，可用 `relates_to` 引用原问题。Agent 据原文整理，不自行宣布解决；脚本不接受新 `question_status` 或 `state` 字段，不运行问题状态机，旧记录原样保留。
 
 ## 回执与失败
 

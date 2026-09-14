@@ -6,17 +6,21 @@ const row={id:1,case_id:'case-01-manufacturing-training',base_document_id:'base0
 const manifest={schema_version:'feishu-school-v1',school_id:'fde-school',rules_document_id:'rules',cases:[row]};
 const actor={app_id:'app1',open_id:'user1'};
 function payload(id='turn1') { return {learner:{learner_id:'alice',display_name:'Alice'},consent:{granted:true,scope:'session',session_id:'session1',granted_at:'2026-09-10T08:00:00+08:00'},study_date:'2026-09-10',interaction:{interaction_id:id,created_at:'2026-09-10T09:00:00+08:00',summary:'先验证使用场景',contributions:[{kind:'thought',text:'我觉得应该先确认一线人员会不会使用。',capture:'verbatim',confirmation:'captured',source_refs:[{case_id:row.case_id,pdf_pages:[8],note:'原访谈'}],entry_id:`${row.case_id}:alice:${id}:01`,relates_to:[]}],agent_feedback:[],next_steps:[]}}; }
+function save(client, m, value, input) {
+  const ready=client.createRecord(m,value,input);
+  return client.append(m,value,{...input,document_id:ready.document_id});
+}
 class FakeLark {
   constructor(){this.documents=new Map();this.posts=0;this.creates=0;this.tokens=new Set();this.actor=actor;this.timeoutAfterWrite=false;this.failList=false;}
   identity(){return this.actor;}
-  call(args,input){assert.equal(args[0],'docs');this.creates++;const id='doc'+this.creates,title=args[args.indexOf('--title')+1],parent=args[args.indexOf('--parent-token')+1];const text=input.match(/```text\n([\s\S]+)\n```/)[1];this.documents.set(id,{title,parent,revision:1,blocks:[{...codeBlock(text),block_id:'meta'+id}]});return {document:{document_id:id,url:`https://test.feishu.cn/docx/${id}`}};}
+  call(args,input){assert.equal(args[0],'docs');this.creates++;const id='doc'+this.creates,title=args[args.indexOf('--title')+1],parent=args[args.indexOf('--parent-token')+1];const text=input.match(/```text\n([\s\S]+)\n```/)[1];this.documents.set(id,{title,parent,revision:1,blocks:[{block_id:id,block_type:1,page:{elements:[]},children:['meta'+id]},{...codeBlock(text),block_id:'meta'+id,parent_id:id}]});return {document:{document_id:id,url:`https://test.feishu.cn/docx/${id}`}};}
   api(method,path,params={},body){
     if(path==='/open-apis/drive/v1/files'){if(this.failList)throw new SchoolError('permission_denied','no access');return {files:[...this.documents].filter(([id,d])=>d.parent===params.folder_token).map(([id,d])=>({name:d.title,token:id,type:'docx',url:`https://test.feishu.cn/docx/${id}`})),has_more:false};}
     const id=path.split('/')[5],doc=this.documents.get(id);assert.ok(doc,`${path} ${id}`);
-    if(method==='GET'&&path.endsWith('/blocks'))return {items:doc.blocks,has_more:false};
+    if(method==='GET'&&path.endsWith('/blocks'))return {items:structuredClone(doc.blocks),has_more:false};
     if(method==='GET')return {document:{document_id:id,revision_id:doc.revision,title:doc.title}};
     this.posts++;
-    if(!this.tokens.has(params.client_token)){this.tokens.add(params.client_token);doc.blocks.push(...body.children.map((block,i)=>({...block,block_id:`b${doc.revision}-${i}`})));doc.revision++;}
+    if(!this.tokens.has(params.client_token)){this.tokens.add(params.client_token);const added=body.children.map((block,i)=>({...block,block_id:`b${doc.revision}-${i}`,parent_id:id}));doc.blocks.push(...added);doc.blocks.find(b=>b.block_id===id)?.children.push(...added.map(b=>b.block_id));doc.revision++;}
     this.onPost?.(doc);
     if(this.timeoutAfterWrite)throw new SchoolError('outcome_unknown','timeout');
     return {children:doc.blocks,document_revision_id:doc.revision};
@@ -42,7 +46,7 @@ test('school API and document creation always request user identity on the selec
   cli.identity=()=>actor;
   school.learnerArchive=()=>[];
   school.list=()=>[];
-  assert.throws(()=>school.append(manifest,1,payload()),/创建文档未返回ID/);
+  assert.throws(()=>school.createRecord(manifest,1,payload()),/创建文档未返回ID/);
   assert.equal(calls.length,2);
   for(const args of calls){
     assert.deepEqual(args.slice(0,2),['--profile','fde-school']);
@@ -105,34 +109,34 @@ test('all pages are read and a repeated continuation is not treated as complete'
 });
 test('first save verifies persisted content and second identical save avoids another POST',()=>{
   const fake=new FakeLark(),c=new SchoolClient(fake),p=payload();
-  assert.equal(c.append(manifest,'01',p).status,'verified_saved');
-  const result=c.append(manifest,'01',p);assert.equal(result.status,'verified_existing');assert.equal(fake.posts,1);assert.equal(fake.creates,1);assert.match(result.url,/#b/);
+  assert.equal(save(c,manifest,'01',p).status,'verified_saved');
+  const result=save(c,manifest,'01',p);assert.equal(result.status,'verified_saved');assert.equal(result.existing,true);assert.equal(fake.posts,1);assert.equal(fake.creates,1);assert.match(result.url,/#b/);
 });
 test('uncertain POST success is resolved by readback without a blind retry',()=>{
-  const fake=new FakeLark();fake.timeoutAfterWrite=true;const result=new SchoolClient(fake).append(manifest,1,payload());assert.equal(result.status,'verified_saved');assert.equal(result.recovered,true);assert.equal(fake.posts,1);
+  const fake=new FakeLark();fake.timeoutAfterWrite=true;const result=save(new SchoolClient(fake),manifest,1,payload());assert.equal(result.status,'verified_saved');assert.equal(result.recovered,true);assert.equal(fake.posts,1);
 });
 test('same ID different content is rejected and old text survives',()=>{
-  const fake=new FakeLark(),c=new SchoolClient(fake),p=payload();c.append(manifest,1,p);p.interaction.contributions[0].text='changed';assert.throws(()=>c.append(manifest,1,p),e=>e.code==='interaction_conflict');assert.equal(fake.posts,1);
+  const fake=new FakeLark(),c=new SchoolClient(fake),p=payload();save(c,manifest,1,p);p.interaction.contributions[0].text='changed';assert.throws(()=>save(c,manifest,1,p),e=>e.code==='interaction_conflict');assert.equal(fake.posts,1);
 });
 test('another OAuth account cannot claim the existing author by reusing their label',()=>{
-  const fake=new FakeLark(),c=new SchoolClient(fake);c.append(manifest,1,payload());fake.actor={app_id:'app1',open_id:'other'};assert.throws(()=>c.append(manifest,1,payload('turn2')),e=>e.code==='identity_mismatch');assert.equal(fake.posts,1);
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());fake.actor={app_id:'app1',open_id:'other'};assert.throws(()=>save(c,manifest,1,payload('turn2')),e=>e.code==='identity_mismatch');assert.equal(fake.posts,1);
 });
 test('new consent context is recorded for subsequent sessions on the same day',()=>{
-  const fake=new FakeLark(),c=new SchoolClient(fake);c.append(manifest,1,payload());const p=payload('turn2');p.consent.session_id='session2';c.append(manifest,1,p);
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());const p=payload('turn2');p.consent.session_id='session2';save(c,manifest,1,p);
   const archive=c.reflections(manifest,1);assert.equal(archive.records[0].interactions[1].recording.consent.session_id,'session2');
 });
-test('status update needs explicit author confirmation and an existing question',()=>{
-  const p=payload();p.interaction.contributions[0].kind='question_status';p.interaction.contributions[0].state='answered';p.interaction.contributions[0].target_id=`${row.case_id}:alice:old:01`;assert.throws(()=>validatePayload(p,row,[row]),/确认/);
-  p.interaction.contributions[0].confirmation='confirmed';assert.throws(()=>new SchoolClient(new FakeLark()).append(manifest,1,p),/找不到/);
+test('new question progress is recorded as ordinary user text, not state events',()=>{
+  const p=payload();Object.assign(p.interaction.contributions[0],{kind:'question_status',state:'answered',confirmation:'confirmed',target_id:`${row.case_id}:alice:old:01`});
+  assert.throws(()=>validatePayload(p,row,[row]),/问题进展/);
 });
 test('partial reflection reads report failures instead of claiming all peers were read',()=>{
-  const fake=new FakeLark(),c=new SchoolClient(fake);c.append(manifest,1,payload());fake.documents.get('doc1').blocks=[];const result=c.reflections(manifest,1);assert.equal(result.complete,false);assert.equal(result.failures.length,1);
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());fake.documents.get('doc1').blocks=[];const result=c.reflections(manifest,1);assert.equal(result.complete,false);assert.equal(result.failures.length,1);
 });
-test('meeting deduplicates IDs, applies cutoff, and retains unresolved questions',()=>{
+test('meeting deduplicates IDs and applies cutoff without deciding question progress',()=>{
   const p=payload(),question={...p.interaction.contributions[0],kind:'question'};
   const turn={...p.interaction,contributions:[question],_block_id:'b1'};
   const record={metadata:{case_id:row.case_id,learner_id:'alice',display_name:'Alice'},document_id:'d',url:'https://test.feishu.cn/docx/d',revision_id:2,interactions:[turn]};
-  const result=meetingData([{complete:true,failures:[],records:[record,structuredClone(record)]}],{},'2026-09-10T12:00:00+08:00');assert.equal(result.interactions.length,1);assert.equal(result.learner_count,1);assert.equal(result.open_questions.length,1);
+  const result=meetingData([{complete:true,failures:[],records:[record,structuredClone(record)]}],{},'2026-09-10T12:00:00+08:00');assert.equal(result.interactions.length,1);assert.equal(result.learner_count,1);assert.ok(!('open_questions' in result));assert.ok(!('unresolved_questions' in result));
   assert.equal(meetingData([{complete:true,failures:[],records:[record]}],{},'2026-09-10T08:00:00+08:00').interactions.length,0);
 });
 test('meeting reports contradictory duplicates',()=>{
@@ -163,7 +167,7 @@ test('pagination cannot claim completeness without a boolean has_more',()=>{
 test('document reads require a real revision and retain a known tenant URL for bare IDs',()=>{
   const invalid=new SchoolClient({api:()=>({document:{title:'missing revision'}})});
   assert.throws(()=>invalid.document('token'),e=>e.code==='incomplete_read');
-  const fake=new FakeLark(),c=new SchoolClient(fake);c.append(manifest,1,payload());
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());
   assert.equal(c.document('doc1').url,'https://test.feishu.cn/docx/doc1');
 });
 test('Wiki listings derive source links from the known tenant and real node token',()=>{
@@ -172,52 +176,165 @@ test('Wiki listings derive source links from the known tenant and real node toke
   assert.equal(c.list({type:'wiki',token:'parent',space_id:'123'})[0].url,'https://test.feishu.cn/wiki/realNode');
 });
 test('unknown documents make reflections incomplete unless the manifest explicitly excludes them',()=>{
-  const fake=new FakeLark(),c=new SchoolClient(fake);c.append(manifest,1,payload());
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());
   fake.documents.set('readme',{title:'README',parent:'folder01',revision:1,blocks:[]});
   assert.equal(c.reflections(manifest,1).complete,false);
   const m=structuredClone(manifest);m.cases[0].reflections_auxiliary_document_ids=['readme'];
   const result=c.reflections(m,1);assert.equal(result.complete,true);assert.equal(result.excluded.length,1);
 });
 test('another OAuth account cannot reuse an existing learner_id on another day or case',()=>{
-  const fake=new FakeLark(),c=new SchoolClient(fake);c.append(manifest,1,payload());fake.actor={app_id:'app1',open_id:'other'};
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());fake.actor={app_id:'app1',open_id:'other'};
   const next=payload('day2');next.study_date='2026-09-11';next.interaction.created_at='2026-09-11T09:00:00+08:00';
-  assert.throws(()=>c.append(manifest,1,next),e=>e.code==='identity_mismatch');
+  assert.throws(()=>save(c,manifest,1,next),e=>e.code==='identity_mismatch');
   const row2={...row,id:2,case_id:'case-02-example',reflections_parent:{type:'folder',token:'folder02'}},m={...manifest,cases:[row,row2]},p=payload('case2');
   p.interaction.contributions[0].entry_id=`${row2.case_id}:alice:case2:01`;
-  assert.throws(()=>c.append(m,2,p),e=>e.code==='identity_mismatch');
+  assert.throws(()=>save(c,m,2,p),e=>e.code==='identity_mismatch');
   assert.equal(fake.creates,1);assert.equal(fake.posts,1);
 });
 test('unbound migrated learner IDs cannot be claimed but do not block a distinct new learner',()=>{
-  const fake=new FakeLark(),c=new SchoolClient(fake);c.append(manifest,1,payload());
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());
   const d=fake.documents.get('doc1'),r=parseReflection({blocks:d.blocks});delete r.metadata.actor;
   for(const turn of r.interactions)delete turn.recording;
   d.blocks=[{...codeBlock('school-record-meta-v1\n'+JSON.stringify(r.metadata)),block_id:'legacyMeta'},...r.interactions.flatMap(renderInteraction)];
-  assert.throws(()=>c.append(manifest,1,payload('turn2')),e=>e.code==='identity_mismatch');
+  assert.throws(()=>save(c,manifest,1,payload('turn2')),e=>e.code==='identity_mismatch');
   const other=payload('other');other.learner={learner_id:'bob',display_name:'Bob'};other.interaction.contributions[0].entry_id=`${row.case_id}:bob:other:01`;
-  assert.equal(c.append(manifest,1,other).status,'verified_saved');
+  assert.equal(save(c,manifest,1,other).status,'verified_saved');
 });
-test('the bound author can confirm an old question status from a later day',()=>{
-  const fake=new FakeLark(),c=new SchoolClient(fake),q=payload();q.interaction.contributions[0].kind='question';c.append(manifest,1,q);
-  const p=payload('day2');p.study_date='2026-09-11';p.interaction.created_at='2026-09-11T09:00:00+08:00';
-  Object.assign(p.interaction.contributions[0],{kind:'question_status',state:'answered',confirmation:'confirmed',target_id:q.interaction.contributions[0].entry_id});
-  assert.equal(c.append(manifest,1,p).status,'verified_saved');
-  assert.equal(c.meeting(manifest,[1]).unresolved_questions.length,0);
+test('legacy question_status remains readable without deriving a state',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake),q=payload();q.interaction.contributions[0].kind='question';save(c,manifest,1,q);
+  const turn=payload('legacy').interaction;
+  Object.assign(turn.contributions[0],{kind:'question_status',state:'answered',confirmation:'confirmed',target_id:q.interaction.contributions[0].entry_id});
+  turn.recording={actor};
+  const d=fake.documents.get('doc1'),root=d.blocks.find(b=>b.block_id==='doc1'),added=renderInteraction(turn).map((b,i)=>({...b,block_id:`legacy-${i}`,parent_id:'doc1'}));d.blocks.push(...added);root.children.push(...added.map(b=>b.block_id));
+  const before=structuredClone(d.blocks),result=c.meeting(manifest,[1]);
+  assert.equal(result.complete,true);assert.equal(result.interactions.length,2);
+  assert.equal(result.interactions[1].body.contributions[0].state,'answered');
+  assert.ok(!('unresolved_questions' in result));assert.deepEqual(d.blocks,before);
 });
 test('uncertain writes still verify old history and directory discoverability',()=>{
-  const fake=new FakeLark(),c=new SchoolClient(fake);c.append(manifest,1,payload());fake.timeoutAfterWrite=true;
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());fake.timeoutAfterWrite=true;
   fake.onPost=doc=>{doc.blocks=doc.blocks.filter(b=>b.block_id!=='b1-2');};
-  assert.throws(()=>c.append(manifest,1,payload('turn2')),e=>e.code==='history_changed');
+  assert.throws(()=>save(c,manifest,1,payload('turn2')),e=>e.code==='history_changed');
   const hidden=new FakeLark();hidden.timeoutAfterWrite=true;hidden.onPost=doc=>{doc.parent='moved';};
-  const result=new SchoolClient(hidden).append(manifest,1,payload());assert.equal(result.status,'saved_unindexed');assert.equal(result.recovered,true);
+  const result=save(new SchoolClient(hidden),manifest,1,payload());assert.equal(result.status,'verified_saved');assert.equal(result.directory.status,'missing');assert.equal(result.recovered,true);
 });
 test('concurrent duplicate documents cannot both be reported as verified_saved',()=>{
   const fake=new FakeLark();fake.onPost=doc=>{fake.documents.set('concurrent',structuredClone(doc));};
-  assert.throws(()=>new SchoolClient(fake).append(manifest,1,payload()),e=>e.code==='duplicate_documents');
+  assert.throws(()=>save(new SchoolClient(fake),manifest,1,payload()),e=>e.code==='duplicate_documents');
 });
-test('deferred and discussed questions remain unresolved until the same bound author answers',()=>{
-  for(const state of ['deferred','discussed','answered']) {
-    const fake=new FakeLark(),c=new SchoolClient(fake),q=payload();q.interaction.contributions[0].kind='question';c.append(manifest,1,q);
-    const p=payload('status');Object.assign(p.interaction.contributions[0],{kind:'question_status',state,confirmation:'confirmed',target_id:q.interaction.contributions[0].entry_id});
-    c.append(manifest,1,p);const result=c.meeting(manifest,[1]);assert.equal(result.complete,true);assert.equal(result.open_questions.length,0);assert.equal(result.unresolved_questions.length,state==='answered'?0:1);
-  }
+test('agent feedback is returned as evidence, never as a resolved question',()=>{
+  const p=payload();p.interaction.contributions[0].kind='question';p.interaction.agent_feedback=['已经回答'];
+  const result=meetingData([{complete:true,records:[{metadata:{case_id:row.case_id,learner_id:'alice'},interactions:[p.interaction]}]}],{});
+  assert.ok(!('open_questions' in result));assert.ok(!('unresolved_questions' in result));
+  assert.equal(result.interactions[0].body.contributions[0].kind,'question');
+});
+
+// Review regressions: no real Feishu requests.
+test('append never creates a document implicitly, including after creation timeout',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake),create=fake.call.bind(fake);
+  fake.call=(args,input)=>{create(args,input);throw new SchoolError('outcome_unknown','timeout');};
+  assert.throws(()=>c.createRecord(manifest,1,payload()),e=>e.code==='creation_unverified'&&e.details.retry_create===false);
+  const fresh=new SchoolClient(fake);
+  assert.throws(()=>fresh.append(manifest,1,payload()),/document_id/);
+  assert.equal(fake.creates,1);assert.equal(fake.posts,0);
+});
+test('retrying creation with no visible result refuses a second create',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);
+  assert.throws(()=>c.createRecord(manifest,1,{...payload(),retry:true}),e=>e.code==='creation_unverified');
+  assert.equal(fake.creates,0);
+});
+test('created metadata must match the requested identity before any append',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake),create=fake.call.bind(fake);
+  fake.call=(args,input)=>{const r=create(args,input),d=fake.documents.get('doc1'),meta=parseReflection({blocks:d.blocks}).metadata;
+    meta.actor={app_id:'other',open_id:'other'};d.blocks=[{...codeBlock('school-record-meta-v1\n'+JSON.stringify(meta)),block_id:'meta'}];return r;};
+  assert.throws(()=>c.createRecord(manifest,1,payload()),e=>e.code==='identity_mismatch'&&e.details.document_id==='doc1');
+  assert.equal(fake.posts,0);
+});
+test('identity errors after POST cannot be recovered into success',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake),ready=c.createRecord(manifest,1,payload()),api=fake.api.bind(fake);
+  fake.api=(method,path,params,body)=>{const r=api(method,path,params,body);if(method==='POST')throw new SchoolError('identity_mismatch','bot');return r;};
+  assert.throws(()=>c.append(manifest,1,{...payload(),document_id:ready.document_id}),e=>e.code==='identity_mismatch'&&e.details.document_id===ready.document_id);
+  assert.equal(fake.posts,1);
+});
+test('old readable paragraphs cannot disappear while JSON remains',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());
+  fake.onPost=d=>{d.blocks=d.blocks.filter(b=>!(b.block_type===2&&b.block_id.startsWith('b1-')));};
+  assert.throws(()=>save(c,manifest,1,payload('next')),e=>e.code==='history_changed');
+});
+test('new readable paragraphs must exist before reporting a verified save',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);
+  fake.onPost=d=>{d.blocks=d.blocks.filter(b=>b.block_type!==2);};
+  assert.throws(()=>save(c,manifest,1,payload()),e=>e.code==='save_unverified');
+});
+test('deduplicated existing content receives the same readable verification',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());
+  fake.documents.get('doc1').blocks=fake.documents.get('doc1').blocks.filter(b=>b.block_type!==2);
+  assert.throws(()=>c.append(manifest,1,{...payload(),document_id:'doc1'}),e=>e.code==='save_unverified');
+  assert.equal(fake.posts,1);
+});
+test('directory query failure preserves the independently verified content result',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);fake.onPost=()=>{fake.failList=true;};
+  const result=save(c,manifest,1,payload());
+  assert.equal(result.status,'verified_saved');assert.equal(result.directory.status,'unknown');
+  assert.equal(result.directory.error,'permission_denied');assert.equal(result.sharing_verified,false);
+});
+test('a known moved document is read back on retry but never recreated or appended to',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);fake.onPost=d=>{d.parent='moved';};
+  const first=save(c,manifest,1,payload());assert.equal(first.directory.status,'missing');
+  const result=c.append(manifest,1,{...payload(),document_id:first.document_id});
+  assert.equal(result.existing,true);assert.equal(result.directory.status,'missing');
+  assert.throws(()=>c.append(manifest,1,{...payload('next'),document_id:first.document_id}),e=>e.code==='target_unverified');
+  assert.equal(fake.creates,1);assert.equal(fake.posts,1);
+  assert.throws(()=>c.createRecord(manifest,1,{...payload(),document_id:first.document_id}),e=>e.code==='target_unverified');
+  assert.equal(fake.creates,1);
+});
+test('same interaction ID cannot be reused across days in the same case',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());
+  const next=payload();next.study_date='2026-09-11';next.interaction.created_at='2026-09-11T09:00:00+08:00';
+  assert.throws(()=>save(c,manifest,1,next),e=>e.code==='interaction_conflict');
+  assert.equal(fake.creates,1);assert.equal(fake.posts,1);
+});
+test('retry and document identifiers are validated before writes',()=>{
+  const p=payload();p.retry='true';assert.throws(()=>validatePayload(p,row,[row]),/retry/);
+  p.retry=true;p.document_id='../other';assert.throws(()=>validatePayload(p,row,[row]),/document_id/);
+});
+test('existing documents can be rediscovered after interrupted creation without duplicate writes',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake),ready=c.createRecord(manifest,1,payload());
+  const resumed=new SchoolClient(fake).createRecord(manifest,1,{...payload(),retry:true});
+  assert.equal(resumed.document_id,ready.document_id);assert.equal(resumed.existing,true);
+  assert.equal(fake.creates,1);assert.equal(fake.posts,0);
+});
+test('only root child-list growth is ignored, changed old paragraph content is rejected',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);const ready=c.createRecord(manifest,1,payload());
+  assert.equal(c.append(manifest,1,{...payload(),document_id:ready.document_id}).status,'verified_saved');
+  fake.onPost=doc=>{const p=doc.blocks.find(b=>b.block_type===2);p.text.elements[0].text_run.content='edited history';};
+  assert.throws(()=>c.append(manifest,1,{...payload('next'),document_id:ready.document_id}),e=>e.code==='history_changed');
+});
+test('malformed peer interaction text does not block a different known author',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());
+  const d=fake.documents.get('doc1');d.blocks.push({...codeBlock('school-interaction-v1\n{"unfinished":'),block_id:'bad'});
+  const p=payload('bob');p.learner={learner_id:'bob',display_name:'Bob'};p.interaction.contributions[0].entry_id=`${row.case_id}:bob:bob:01`;
+  assert.equal(save(c,manifest,1,p).status,'verified_saved');
+  assert.equal(c.reflections(manifest,1).complete,false);
+});
+
+test('directory identity mismatch is fatal even when content is saved',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake),api=fake.api.bind(fake);
+  fake.api=(method,path,params,body)=>{if(fake.posts&&path==='/open-apis/drive/v1/files')throw new SchoolError('identity_mismatch','bot');return api(method,path,params,body);};
+  assert.throws(()=>save(c,manifest,1,payload()),e=>e.code==='identity_mismatch');
+});
+test('metadata accepts legacy leading text and rejects duplicate markers in separate blocks',()=>{
+  const meta='school-record-meta-v1\n{"learner_id":"alice"}';
+  assert.equal(parseReflection({blocks:[codeBlock('\nlegacy\n'+meta)]}).metadata.learner_id,'alice');
+  assert.throws(()=>parseReflection({blocks:[codeBlock(meta),codeBlock('\n'+meta)]}),/唯一/);
+});
+test('root child order cannot change even when flattened API order is unchanged',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());
+  fake.onPost=d=>{const ids=d.blocks[0].children;[ids[0],ids[1]]=[ids[1],ids[0]];};
+  assert.throws(()=>save(c,manifest,1,payload('next')),e=>e.code==='history_changed');
+});
+test('readable verification follows parent child order, not API array order',()=>{
+  const fake=new FakeLark(),c=new SchoolClient(fake);
+  fake.onPost=d=>{const ids=d.blocks[0].children;[ids[1],ids[2]]=[ids[2],ids[1]];};
+  assert.throws(()=>save(c,manifest,1,payload()),e=>e.code==='save_unverified');
 });
