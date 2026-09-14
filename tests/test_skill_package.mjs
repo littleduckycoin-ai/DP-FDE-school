@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { dirname, resolve, join } from 'node:path';
+import { dirname, resolve, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { main, validatePayload } from '../skills/school-guide/scripts/feishu_school.mjs';
 
@@ -25,7 +25,7 @@ test('one discoverable, self-contained skill includes its script and references'
     for (const [, target] of readFileSync(path, 'utf8').matchAll(/\]\(([^)]+)\)/g)) {
       if (/^https?:\/\//.test(target)) continue;
       const resolved = resolve(dirname(path), target.split('#')[0]);
-      assert.ok(resolved.startsWith(skill + '/'), `Reference escapes installed Skill: ${path}: ${target}`);
+      assert.ok(resolved.startsWith(skill + sep), `Reference escapes installed Skill: ${path}: ${target}`);
       assert.ok(existsSync(resolved), `Missing reference: ${path}: ${target}`);
     }
   }

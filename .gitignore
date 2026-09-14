@@ -9,3 +9,5 @@ node_modules/
 skills-lock.json
 .DS_Store
 Thumbs.db
+.school/
+__pycache__/
