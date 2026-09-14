@@ -1,6 +1,0 @@
-interface:
-  display_name: "FDE Online School Guide"
-  short_description: "在线学习FDE案例，自动沉淀思考并汇总讨论"
-  default_prompt: "使用 $school-guide 在线打开FDE AI School，根据我的问题推荐一个案例并开始学习。"
-policy:
-  allow_implicit_invocation: true
