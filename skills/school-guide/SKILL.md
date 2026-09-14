@@ -1,6 +1,6 @@
 ---
 name: school-guide
-description: 在飞书 FDE 学校学习、比较和讨论案例，协助首次 CLI 登录授权，将署名思考和问题追加到案例 reflections 文档，并整理会前讨论。
+description: 在飞书 FDE 学校学习、比较和讨论案例，协助首次 CLI 登录授权，将署名思考和问题保存到独立学习者沉淀目录的 case01—case24，并整理会前讨论。
 ---
 
 # 飞书 FDE 学校
@@ -28,12 +28,16 @@ description: 在飞书 FDE 学校学习、比较和讨论案例，协助首次 C
 |---|---|
 | 规则、案例索引 | 当前教学规则、案例及其文档与文件夹位置 |
 | 每例 base | 简介、结构化详解、完整访谈和图片；普通学习不修改 |
-| 每例 reflections | 学员署名的思考、评价、问题、应用设想、分歧和修订；讨论后追加 |
+| 学习者沉淀/case01—case24 | 独立于案例资料的沉淀区；保存学员署名的思考、评价、问题、应用设想、分歧和修订 |
 | 每例 canon | 正式拆解；提案为 proposed，真实审核后才是 accepted |
 | patterns | 跨案例方法、适用边界与反例，正式结论须审核 |
 | meetings | 会前来源清单、问题汇总、Agent 建议与真实会议决定 |
 
 即使整个学校可编辑，也只在获授权的目标位置写入，不改其他学员记录或无关目录。审核是操作约定，不能宣称已由平台强制保护。
+
+实际目录为“学校/案例资料”和“学校/学习者沉淀/case01—case24”两棵独立目录。沉淀总入口：https://dptechnology.feishu.cn/drive/folder/QJp1f43d1lZzcjdM7gPc4eL6nRc 。这个链接供定位，写入仍以当前飞书 Agent 目录为准。
+
+保存前读取最新目录，核对 `reflections_layout=separate-root-per-case`、`reflections_root` 和该案例的 `reflections_parent.parent_token`。`reflections_parent.token` 才是个人文档的创建位置：不能写到总目录、案例资料、其他 case 或旧位置。`case01` 是文件夹展示名，记录中的稳定 `case_id` 仍用 `case-01-manufacturing-training` 等原值。“案例 reflections”仅表示逻辑归属，不表示位于案例资料下。缺少或冲突的映射先停写并请求维护者核对，不自行搜索同名文件夹、创建替代目录或修改权限。
 
 ## 如何教学
 
