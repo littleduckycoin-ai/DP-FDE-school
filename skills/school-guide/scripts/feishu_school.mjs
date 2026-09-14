@@ -151,6 +151,19 @@ export function validatePayload(payload,caseRow,allCases,timezone='Asia/Shanghai
   return payload;
 }
 
+export function validateReflectionLayout(manifest) {
+  const root=manifest.reflections_root;
+  const valid=manifest.reflections_layout==='separate-root-per-case'&&root?.type==='folder'&&plain(root.token)&&
+    root.token!==manifest.school_parent?.token&&root.token!==manifest.cases_parent?.token&&
+    Array.isArray(manifest.cases)&&manifest.cases.length>0&&
+    manifest.cases.every(row=>row.reflections_parent?.type==='folder'&&plain(row.reflections_parent.token)&&
+      row.reflections_parent.parent_token===root.token&&row.reflections_parent.token!==root.token&&
+      row.reflections_parent.token!==manifest.cases_parent?.token&&row.reflections_parent.token!==manifest.school_parent?.token&&
+      row.reflections_parent.token!==row.canon_parent?.token&&row.reflections_parent.token!==row.base_document_id)&&
+    new Set(manifest.cases.map(row=>row.reflections_parent.token)).size===manifest.cases.length;
+  if(!valid)throw new SchoolError('reflection_layout_invalid','沉淀目录映射缺失或冲突：应为独立学习者沉淀/case01—case24。本轮不写入，不创建替代目录；请维护者核对当前飞书目录。');
+}
+
 export class SchoolClient {
   constructor(lark=new LarkCli()) {this.lark=lark;this.origin=null;}
   pages(path,params={}) {
@@ -319,6 +332,7 @@ export class SchoolClient {
     return matches[0]?.record;
   }
   createRecord(manifest,value,input) {
+    validateReflectionLayout(manifest);
     const row=this.caseRow(manifest,value),payload=validatePayload(structuredClone(input),row,manifest.cases,manifest.timezone||'Asia/Shanghai');
     const actor=this.lark.identity(),{learner,study_date,interaction}=payload;
     interaction.recording={actor:{app_id:actor.app_id,open_id:actor.open_id},consent:payload.consent};
@@ -354,6 +368,7 @@ export class SchoolClient {
     }
   }
   append(manifest,value,input) {
+    validateReflectionLayout(manifest);
     const row=this.caseRow(manifest,value),payload=validatePayload(structuredClone(input),row,manifest.cases,manifest.timezone||'Asia/Shanghai');
     requireValue(/^[a-zA-Z0-9_-]+$/.test(payload.document_id||''),'append 需要已核实的 document_id；不自动新建文档');
     const actor=this.lark.identity(),{learner,interaction}=payload;

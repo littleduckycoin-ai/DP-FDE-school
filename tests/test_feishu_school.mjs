@@ -1,9 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SchoolClient,SchoolError,LarkCli,unwrap,markedJson,parseReflection,codeBlock,textBlock,renderInteraction,validatePayload,meetingData,main,SCHOOL_MANIFEST} from '../skills/school-guide/scripts/feishu_school.mjs';
+import {SchoolClient,SchoolError,LarkCli,unwrap,markedJson,parseReflection,codeBlock,textBlock,renderInteraction,validatePayload,meetingData,main,SCHOOL_MANIFEST,validateReflectionLayout} from '../skills/school-guide/scripts/feishu_school.mjs';
 
-const row={id:1,case_id:'case-01-manufacturing-training',base_document_id:'base01',source_pdf_pages:[8,9],reflections_parent:{type:'folder',token:'folder01'}};
-const manifest={schema_version:'feishu-school-v1',school_id:'fde-school',rules_document_id:'rules',cases:[row]};
+const row={id:1,case_id:'case-01-manufacturing-training',base_document_id:'base01',source_pdf_pages:[8,9],reflections_parent:{type:'folder',token:'folder01',parent_token:'reflection-root'}};
+const manifest={schema_version:'feishu-school-v1',school_id:'fde-school',rules_document_id:'rules',reflections_layout:'separate-root-per-case',reflections_root:{type:'folder',token:'reflection-root'},cases:[row]};
+
+test('wrong reflection layout stops both creation and append before any API call',()=>{
+  for(const change of [m=>delete m.reflections_root,m=>m.cases[0].reflections_parent.parent_token='old-case-folder',m=>m.cases[0].reflections_parent.token='reflection-root',m=>m.cases.push(structuredClone(m.cases[0]))]) {
+    const bad=structuredClone(manifest);change(bad);
+    const client=new SchoolClient({identity(){throw new Error('must not call API');}});
+    assert.throws(()=>client.createRecord(bad,1,{}),e=>e.code==='reflection_layout_invalid');
+    assert.throws(()=>client.append(bad,1,{}),e=>e.code==='reflection_layout_invalid');
+  }
+  assert.doesNotThrow(()=>validateReflectionLayout(manifest));
+});
 const actor={app_id:'app1',open_id:'user1'};
 function payload(id='turn1') { return {learner:{learner_id:'alice',display_name:'Alice'},consent:{granted:true,scope:'session',session_id:'session1',granted_at:'2026-09-10T08:00:00+08:00'},study_date:'2026-09-10',interaction:{interaction_id:id,created_at:'2026-09-10T09:00:00+08:00',summary:'先验证使用场景',contributions:[{kind:'thought',text:'我觉得应该先确认一线人员会不会使用。',capture:'verbatim',confirmation:'captured',source_refs:[{case_id:row.case_id,pdf_pages:[8],note:'原访谈'}],entry_id:`${row.case_id}:alice:${id}:01`,relates_to:[]}],agent_feedback:[],next_steps:[]}}; }
 function save(client, m, value, input) {
@@ -186,7 +196,7 @@ test('another OAuth account cannot reuse an existing learner_id on another day o
   const fake=new FakeLark(),c=new SchoolClient(fake);save(c,manifest,1,payload());fake.actor={app_id:'app1',open_id:'other'};
   const next=payload('day2');next.study_date='2026-09-11';next.interaction.created_at='2026-09-11T09:00:00+08:00';
   assert.throws(()=>save(c,manifest,1,next),e=>e.code==='identity_mismatch');
-  const row2={...row,id:2,case_id:'case-02-example',reflections_parent:{type:'folder',token:'folder02'}},m={...manifest,cases:[row,row2]},p=payload('case2');
+  const row2={...row,id:2,case_id:'case-02-example',reflections_parent:{type:'folder',token:'folder02',parent_token:'reflection-root'}},m={...manifest,cases:[row,row2]},p=payload('case2');
   p.interaction.contributions[0].entry_id=`${row2.case_id}:alice:case2:01`;
   assert.throws(()=>save(c,m,2,p),e=>e.code==='identity_mismatch');
   assert.equal(fake.creates,1);assert.equal(fake.posts,1);

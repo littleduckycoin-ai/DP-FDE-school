@@ -1,5 +1,7 @@
 # 个人沉淀：位置、输入与可读正文
 
+实际路径为“学校/学习者沉淀/case01/个人文档”，不是“案例资料/case01/reflections”。总目录为 https://dptechnology.feishu.cn/drive/folder/QJp1f43d1lZzcjdM7gPc4eL6nRc 。下述 case01 文件夹是原 reflections 文件夹整体迁移后的同一对象，ID 未改变。其父目录以最新 manifest 核对，不能把总目录 token 当成 `--parent-token` 写个人文档。
+
 具体案例的 `reflections_parent` 从当前飞书 Agent 目录读取。例如案例 01 的稳定标识是 `case-01-manufacturing-training`，其 reflections 为 https://dptechnology.feishu.cn/drive/folder/BtImfzZOIlMxEmdYWvKcCKE3nKg 。该链接仅作位置示例；每次保存仍核对当前目录，不把其他案例都写到这里。
 
 每人每例每天一份 Docx，示例标题：`school-reflection | case-01-manufacturing-training | alice | 2026-09-14`。已有文档追加，没有才创建；不要给每轮新建文件夹，也不要把所有人写进同一篇文档。
