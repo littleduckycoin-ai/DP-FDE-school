@@ -1,10 +1,8 @@
 ---
 name: school-guide
-description: 学习、比较或讨论 FDE 案例时使用。读取学校当前线上规则与案例，按授权把署名思考、评价和问题追加为对应案例的 reflection 知识文档，整理会前讨论并起草待审核的拆解与模式。
+description: 在飞书 FDE 学校学习、比较和讨论案例，协助首次 CLI 登录授权，将署名思考和问题追加到案例 reflections 文档，并整理会前讨论。
 ---
 
-# School Guide入口
+# 飞书学校入口
 
-学习时在线读取并遵循[当前共同规则](https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/.codex/skills/school-guide/SKILL.md)，响应进入会话上下文，不要求学员建立本地教材副本。网页不可用时用GitHub文件读取或Contents API，并明确任何读取失败。
-
-规则的仓库维护位置是[唯一规则文件](../../../.codex/skills/school-guide/SKILL.md)。本入口不复制教学逻辑。
+读取随包提供的[唯一规则文件](../../../.codex/skills/school-guide/SKILL.md)，运行其中的飞书 bootstrap；直接从飞书读取当前规则、案例和 reflections。安装来源只分发工具，不读取旧资料中台，不克隆教材。

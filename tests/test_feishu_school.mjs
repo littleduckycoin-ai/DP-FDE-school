@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SchoolClient,SchoolError,LarkCli,unwrap,markedJson,parseReflection,codeBlock,textBlock,renderInteraction,validatePayload,meetingData,fetchRouter} from '../.codex/skills/school-guide/scripts/feishu_school.mjs';
+import {SchoolClient,SchoolError,LarkCli,unwrap,markedJson,parseReflection,codeBlock,textBlock,renderInteraction,validatePayload,meetingData,main,SCHOOL_MANIFEST} from '../.codex/skills/school-guide/scripts/feishu_school.mjs';
 
 const row={id:1,case_id:'case-01-manufacturing-training',base_document_id:'base01',source_pdf_pages:[8,9],reflections_parent:{type:'folder',token:'folder01'}};
 const manifest={schema_version:'feishu-school-v1',school_id:'fde-school',rules_document_id:'rules',cases:[row]};
@@ -105,14 +105,19 @@ test('meeting deduplicates IDs, applies cutoff, and retains unresolved questions
 test('meeting reports contradictory duplicates',()=>{
   const turn=payload().interaction,record={metadata:{case_id:row.case_id,learner_id:'alice'},interactions:[turn]};const other=structuredClone(record);other.interactions[0].summary='changed';assert.equal(meetingData([{complete:true,failures:[],records:[record,other]}],{}).complete,false);
 });
-test('a route in preparation cannot silently activate the Feishu backend',async()=>{
-  const router={schema_version:'school-backend-v1',active_backend:'feishu',status:'preparing',feishu:{manifest_url:null}};
-  await assert.rejects(()=>fetchRouter('https://school.test/route',async()=>({ok:true,json:async()=>router})),/尚未验收/);
-});
-test('GitHub route lookup pins raw data to the freshly returned commit',async()=>{
-  const calls=[],sha='a'.repeat(40);const router={schema_version:'school-backend-v1',active_backend:'github',status:'preparing'};
-  const result=await fetchRouter(undefined,async url=>{calls.push(url);return {ok:true,json:async()=>calls.length===1?{sha}:router};});
-  assert.ok(calls[1].includes('/'+sha+'/data/'));assert.equal(result._commit,sha);
+test('school commands default to Feishu without HTTP routing',async()=>{
+  const oldManifest=SchoolClient.prototype.manifest, oldDocument=SchoolClient.prototype.document;
+  const oldFetch=globalThis.fetch; const calls=[];
+  globalThis.fetch=()=>{throw new Error('Unexpected HTTP router request');};
+  SchoolClient.prototype.manifest=function(url){calls.push(url);return {rules_document_id:'rules',cases:[]};};
+  SchoolClient.prototype.document=function(id){return {document_id:id,blocks:[textBlock('live rules')]};};
+  try {
+    const result=await main(['bootstrap']);
+    assert.equal(result.backend,'feishu');assert.equal(result.rules.text,'live rules');
+    assert.deepEqual(calls,[SCHOOL_MANIFEST]);
+    await main(['index']);assert.equal(calls[1],SCHOOL_MANIFEST);
+    await assert.rejects(()=>main(['bootstrap','--router-url','https://old.test']),/不支持旧路由/);
+  } finally {SchoolClient.prototype.manifest=oldManifest;SchoolClient.prototype.document=oldDocument;globalThis.fetch=oldFetch;}
 });
 
 test('JSON-looking credentials are redacted when the CLI fails to emit valid JSON',()=>{

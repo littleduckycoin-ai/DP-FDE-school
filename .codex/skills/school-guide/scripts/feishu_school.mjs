@@ -6,7 +6,7 @@ import { dirname, join, delimiter, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
-export const ROUTER = 'https://raw.githubusercontent.com/littleduckycoin-ai/DP-FDE-school/main/data/school-backend.json';
+export const SCHOOL_MANIFEST = 'https://dptechnology.feishu.cn/docx/JlKadJc4OoYa4cxz7mDcIf3WnO2';
 const KINDS = new Set(['thought','evaluation','question','application','disagreement','feedback','revision','question_status']);
 const LABELS = {thought:'思考',evaluation:'评价',question:'问题',application:'应用设想',disagreement:'分歧',feedback:'同伴反馈',revision:'观点修订',question_status:'问题状态'};
 const SLUG = /^[a-z0-9][a-z0-9_-]{0,79}$/;
@@ -355,17 +355,6 @@ export function meetingData(outputs,manifestSource,cutoff) {
   return {complete:errors.length===0&&outputs.every(o=>o.complete),read_at:new Date().toISOString(),cutoff:cutoff||null,manifest_source:manifestSource,sources,learner_count:new Set(turns.map(t=>t.learner_id)).size,interactions:turns,open_questions:[...questions.values()].filter(q=>q.state==='open'),unresolved_questions:[...questions.values()].filter(q=>q.state!=='answered'),failures:errors,note:'这是来源与记录清单，不是团队共识；多个文档版本不构成全库原子快照。'};
 }
 
-export async function fetchRouter(url=ROUTER,fetcher=fetch) {
-  // Default GitHub route is read by a freshly queried commit, not a raw-main cache.
-  const parsed=new URL(url);
-  const match=parsed.hostname==='raw.githubusercontent.com'&&parsed.pathname.match(/^\/([^/]+)\/([^/]+)\/main\/(.+)$/);
-  let actual=url,commit=null;
-  if(match){const response=await fetcher(`https://api.github.com/repos/${match[1]}/${match[2]}/commits/main`,{headers:{'User-Agent':'FDE-School'},cache:'no-store',signal:AbortSignal.timeout(20000)});if(!response.ok)throw new SchoolError('router_unavailable','无法核实学校路由最新版');commit=(await response.json()).sha;requireValue(/^[a-f0-9]{40}$/.test(commit||''),'GitHub未返回有效版本');actual=`https://raw.githubusercontent.com/${match[1]}/${match[2]}/${commit}/${match[3]}`;}
-  const response=await fetcher(actual,{cache:'no-store',signal:AbortSignal.timeout(20000)});if(!response.ok)throw new SchoolError('router_unavailable','学校入口读取失败：HTTP '+response.status);
-  const router=await response.json();requireValue(router.schema_version==='school-backend-v1'&&['github','feishu'].includes(router.active_backend),'学校路由格式无效');
-  if(router.active_backend==='feishu')requireValue(router.status==='ready'&&plain(router.feishu?.manifest_url),'飞书资料尚未验收发布，不能切换教学来源');
-  return {...router,_read_at:new Date().toISOString(),_commit:commit};
-}
 function argsOf(argv) {
   const options={};const action=argv.shift()||'help';
   while(argv.length){const key=argv.shift();requireValue(key.startsWith('--'),'未知参数 '+key);if(key==='--help'){options.help=true;continue;}requireValue(argv.length>0,'参数缺少值 '+key);options[key.slice(2)]=argv.shift();}
@@ -373,12 +362,11 @@ function argsOf(argv) {
 }
 export async function main(argv=process.argv.slice(2)) {
   const {action,options}=argsOf([...argv]);
-  if(action==='help'||action==='--help'||options.help)return {usage:'node feishu_school.mjs <doctor|bootstrap|index|case|reflections|append|meeting> [--manifest <Feishu Docx/Wiki URL>] [--profile <CLI profile>]',commands:{doctor:'检查工具/本人登录；不输出凭据',bootstrap:'读取最新路由；--manifest 可直接使用已授权的飞书入口',index:'列案例',case:'--case 01，读完整基础文档及原PDF页链接',reflections:'--case 01 [--cutoff ISO-with-timezone]',append:'--case 01 --input -（JSON经stdin）或明确授权的输入文件',meeting:'--cases 01,02 [--cutoff ISO-with-timezone]（返回全部记录与来源）'},limits:'不安装其他Skills，不落地教材；首次安装CLI/OAuth由Agent协助。发布/权限需维护者真实审核。'};
-  const lark=new LarkCli({profile:options.profile}),school=new SchoolClient(lark);
+  if(action==='help'||action==='--help'||options.help)return {usage:'node feishu_school.mjs <doctor|bootstrap|index|case|reflections|append|meeting> [--manifest <Feishu Docx/Wiki URL>] [--profile <CLI profile>]',commands:{doctor:'检查工具/本人登录；不输出凭据',bootstrap:'直接读取飞书学校当前目录与规则',index:'列案例',case:'--case 01，读完整基础文档及原PDF页链接',reflections:'--case 01 [--cutoff ISO-with-timezone]',append:'--case 01 --input -（JSON经stdin）或明确授权的输入文件',meeting:'--cases 01,02 [--cutoff ISO-with-timezone]（返回全部记录与来源）'},limits:'不安装其他Skills，不落地教材；首次安装CLI/OAuth由Agent协助。发布/权限需维护者真实审核。'};
+  const lark=new LarkCli({profile:options.profile||'fde-school'}),school=new SchoolClient(lark);
   if(action==='doctor'){const executable=findCli();return {cli:executable,identity:lark.identity(),ready:true};}
-  let manifestUrl=options.manifest;
-  if(action==='bootstrap'&&!manifestUrl){const router=await fetchRouter(options['router-url']);if(router.active_backend==='github')return {backend:'github',router};manifestUrl=router.feishu.manifest_url;}
-  requireValue(plain(manifestUrl),'需要学校飞书manifest链接；先执行bootstrap获取最新入口');
+  requireValue(!options['router-url'],'此 Skill 只连接飞书，不支持旧路由参数');
+  const manifestUrl=options.manifest||SCHOOL_MANIFEST;
   const manifest=school.manifest(manifestUrl);
   if(action==='bootstrap'){const rules=school.document(manifest.rules_document_id);return {backend:'feishu',manifest,rules:{...rules,text:rules.blocks.map(textOf).join('\n')}};}
   if(action==='index')return manifest;

@@ -198,7 +198,7 @@ for path in reviewed_docs:
 
 canonical = ROOT/'.codex/skills/school-guide/SKILL.md'
 skill_text = canonical.read_text(encoding='utf-8')
-check(all(term in skill_text for term in ['pdf_page_url_template', 'source_page_links', '物理页', 'JSON', '默认']), 'School skill must describe original PDF page citations for both backends')
+check(all(term in skill_text for term in ['source_page_links', '物理页', 'JSON', '默认']), 'School skill must describe Feishu original PDF page citations')
 skill_metadata = skill_text.split('---\n',2)[1]
 for native in ['.agents','.claude']:
     adapter = ROOT/native/'skills/school-guide/SKILL.md'
