@@ -22,6 +22,8 @@ Agent 缺 CLI 时安装，优先复用当前本人连接；未登录才申请文
 
 [学校首页](https://dptechnology.feishu.cn/docx/J5Uad8uqAoBNtyxkWfKcCSbZnQb) · [首次连接说明](skills/school-guide/references/feishu-connection.md)
 
+飞书“案例资料”的每个 case 文件夹直接放案例正文文档和“原访谈逐页PDF”文件夹，不再设置“基础案例”或“官方拆解”中间层。原文按页引用，个人分析保存在独立沉淀区。
+
 只读学习不强制登记。需要保存反馈时再提供展示名、稳定学习标识和本次会话记录授权；说“不记录”的内容不会上传。反馈写入独立的“学习者沉淀/case01—case24”下的署名文档正文，不写入案例资料。具体位置从飞书当前目录解析，成功后返回实际链接，失败则明确待提交。
 
 ## 仓库结构
