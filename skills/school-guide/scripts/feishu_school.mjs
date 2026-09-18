@@ -111,13 +111,28 @@ export function parseReflection(doc) {
 function elements(text) {const chunks=[];for(let i=0;i<text.length;i+=1500)chunks.push({text_run:{content:text.slice(i,i+1500)}});return chunks.length?chunks:[{text_run:{content:''}}];}
 export function textBlock(text) {return {block_type:2,text:{elements:elements(text)}};}
 export function codeBlock(text) {return {block_type:14,code:{elements:elements(text),style:{language:1,wrap:true}}};}
-export function renderInteraction(turn) {
+function renderLegacyInteraction(turn) {
   const blocks=[{block_type:4,heading2:{elements:elements(`${turn.created_at}｜${turn.summary||turn.interaction_id}`)}}];
   for(const entry of turn.contributions) blocks.push(textBlock(`${LABELS[entry.kind]}｜${entry.capture==='verbatim'?'学员原话':'忠实概括'}｜${entry.confirmation}\n${entry.text}\n记录编号：${entry.entry_id}${entry.target_id?'\n关联原记录：'+entry.target_id:''}${entry.state?'\n问题状态：'+entry.state:''}${entry.relates_to?.length?'\n关联条目：'+entry.relates_to.join('、'):''}${entry.source_refs?.length?'\n案例依据：'+entry.source_refs.map(r=>`${r.case_id} PDF物理页 ${(r.pdf_pages||[]).join(',')} ${r.note||''}`).join('；'):''}`));
   if(turn.agent_feedback?.length)blocks.push(textBlock('Agent反馈（不是学员观点）\n'+turn.agent_feedback.join('\n')));
   if(turn.next_steps?.length)blocks.push(textBlock('待验证建议（不是学员承诺）\n'+turn.next_steps.join('\n')));
   blocks.push(codeBlock('school-interaction-v1\n'+JSON.stringify(turn)+'\nschool-interaction-end'));
   requireValue(blocks.length<=50,'单轮记录过长，请按真实讨论轮次拆分');
+  return blocks;
+}
+export function renderInteraction(turn) {
+  const blocks=[{block_type:4,heading2:{elements:elements(turn.summary||'本轮讨论')}},textBlock(`讨论时间：${turn.created_at}`)];
+  for(const [i,entry] of turn.contributions.entries()) {
+    blocks.push({block_type:5,heading3:{elements:elements(`${i+1}. ${LABELS[entry.kind]}｜${entry.capture==='verbatim'?'学员原话':'忠实概括'}`)}});
+    const context=entry.context?`讨论背景（Agent整理，不是学员原话）：${entry.context}\n\n`:'';
+    const sources=entry.source_refs?.length?'\n\n案例依据：'+entry.source_refs.map(r=>`${r.case_id} PDF物理页 ${(r.pdf_pages||[]).join(',')} ${r.note||''}`).join('；'):'';
+    blocks.push(textBlock(context+entry.text+sources));
+  }
+  if(turn.agent_feedback?.length)blocks.push(textBlock('Agent反馈（不是学员观点）\n'+turn.agent_feedback.join('\n\n')));
+  if(turn.next_steps?.length)blocks.push(textBlock('待验证建议（不是学员承诺）\n'+turn.next_steps.join('\n\n')));
+  blocks.push(textBlock('本轮记录信息（供 Agent 核验，阅读时可跳过）'));
+  blocks.push(codeBlock('school-interaction-v1\n'+JSON.stringify(turn)+'\nschool-interaction-end'));
+  requireValue(blocks.length<=50,'单轮记录超出块数限制，请按原顺序分段并关联，保留原话，不概括或截断');
   return blocks;
 }
 export function validatePayload(payload,caseRow,allCases,timezone='Asia/Shanghai') {
@@ -137,6 +152,7 @@ export function validatePayload(payload,caseRow,allCases,timezone='Asia/Shanghai
     const item=turn.contributions[i];
     requireValue(item.kind!=='question_status' && item.state===undefined,'问题进展请保存为普通用户表达，不新增问题状态事件');
     requireValue(KINDS.has(item.kind)&&plain(item.text)&&item.text.length<=12000,'表达类型或内容无效');
+    requireValue(item.context===undefined||(plain(item.context)&&item.context.length<=12000),'讨论背景须为非空文字，过长请完整分段，不截断原话');
     requireValue(['verbatim','paraphrase'].includes(item.capture)&&['captured','confirmed'].includes(item.confirmation),'必须标明原话/概括和是否经用户确认');
     requireValue(item.entry_id===`${caseRow.case_id}:${learner.learner_id}:${turn.interaction_id}:${String(i+1).padStart(2,'0')}`,'entry_id与案例/学员/轮次不一致');
     requireValue(Array.isArray(item.source_refs)&&Array.isArray(item.relates_to),'source_refs和relates_to必须为数组');
@@ -147,7 +163,7 @@ export function validatePayload(payload,caseRow,allCases,timezone='Asia/Shanghai
     }
     if(item.kind==='revision') requireValue(plain(item.target_id)&&item.target_id.startsWith(`${caseRow.case_id}:${learner.learner_id}:`),'只能修订本人记录');
   }
-  requireValue(Buffer.byteLength(JSON.stringify(turn))<=60000,'单轮结构化记录超过60KB，请缩小本轮记录范围');
+  requireValue(Buffer.byteLength(JSON.stringify(turn))<=60000,'单轮结构化记录超过60KB，请按原顺序分段并关联，保留原话，不概括或截断');
   return payload;
 }
 
@@ -312,12 +328,14 @@ export class SchoolClient {
     const {_block_id,...body}=saved[0];
     if(canonical(body)!==canonical(interaction))throw new SchoolError('save_unverified','记录内容不一致');
     // Readable blocks must immediately precede this turn's structured marker.
-    const expected=renderInteraction(interaction).slice(0,-1),marker=freshDoc.blocks.find(b=>b.block_id===_block_id);
+    const marker=freshDoc.blocks.find(b=>b.block_id===_block_id);
     const parent=freshDoc.blocks.find(b=>b.block_id===marker?.parent_id);
     if(!parent||!Array.isArray(parent.children))throw new SchoolError('save_unverified','缺少可核实的正文父子关系');
     const siblings=parent.children.map(id=>freshDoc.blocks.find(b=>b.block_id===id)),end=parent.children.indexOf(_block_id);
-    const actual=siblings.slice(Math.max(0,end-expected.length),end);
-    if(parent.children.filter(id=>id===_block_id).length!==1||actual.length!==expected.length||expected.some((b,i)=>!actual[i]||actual[i].parent_id!==parent.block_id||b.block_type!==actual[i].block_type||textOf(b)!==textOf(actual[i])))throw new SchoolError('save_unverified','可读正文与结构化记录不一致');
+    const matches=expected=>{const actual=siblings.slice(Math.max(0,end-expected.length),end);return actual.length===expected.length&&expected.every((b,i)=>actual[i]&&actual[i].parent_id===parent.block_id&&b.block_type===actual[i].block_type&&textOf(b)===textOf(actual[i]));};
+    // Existing records keep their exact layout. New contextual records must use the readable layout.
+    const valid=matches(renderInteraction(interaction).slice(0,-1))||(!interaction.contributions.some(e=>e.context)&&matches(renderLegacyInteraction(interaction).slice(0,-1)));
+    if(parent.children.filter(id=>id===_block_id).length!==1||!valid)throw new SchoolError('save_unverified','可读正文与结构化记录不一致');
     const directory=this.directory(row,freshDoc);
     if(directory.status==='conflict')throw new SchoolError('duplicate_documents','发现同名文档，正文已写入但归档冲突需要核对');
     return {status:'verified_saved',document_id:doc.document_id,url:doc.url?doc.url+'#'+_block_id:null,interaction_id:interaction.interaction_id,revision_id:fresh.revision_id,directory,sharing_verified:false,existing,recovered};
@@ -352,8 +370,8 @@ export class SchoolClient {
       return {status:'document_ready',document_id:doc.document_id,url:doc.url,existing:true};
     }
     if(payload.retry===true)throw new SchoolError('creation_unverified','重试未发现原文档，必须核对原创建结果，不能再次创建',{retry_create:false});
-    const metadata={schema_version:'1.0',case_id:row.case_id,learner_id:learner.learner_id,display_name:learner.display_name,identity_source:'self_declared_with_feishu_binding',study_date,visibility:'school_shared',actor:{app_id:actor.app_id,open_id:actor.open_id},consent:payload.consent};
-    const content='仅记录该学习者获授权公开的表达；个人观点不代表教材或共识。\n\n```text\nschool-record-meta-v1\n'+JSON.stringify(metadata)+'\nschool-record-meta-end\n```';
+    const metadata={schema_version:'1.0',presentation_layout:'content-first-v2',case_id:row.case_id,learner_id:learner.learner_id,display_name:learner.display_name,identity_source:'self_declared_with_feishu_binding',study_date,visibility:'school_shared',actor:{app_id:actor.app_id,open_id:actor.open_id},consent:payload.consent};
+    const content=`作者：${learner.display_name}｜学习日期：${study_date}\n\n仅记录该学习者获授权公开的表达；个人观点不代表教材或共识。\n\n\`\`\`text\nschool-record-meta-v1\n`+JSON.stringify(metadata)+'\nschool-record-meta-end\n```';
     let created;
     try {
       created=this.lark.call(['docs','+create','--as','user','--title',title,'--parent-token',row.reflections_parent.token,'--doc-format','markdown','--content','-'],content);
@@ -388,8 +406,14 @@ export class SchoolClient {
     const entries=archive.filter(r=>r.metadata.case_id===row.case_id).flatMap(r=>r.interactions.filter(t=>sameActor(t.recording?.actor,actor)).flatMap(t=>t.contributions));
     for(const entry of interaction.contributions.filter(c=>c.kind==='revision'))requireValue(entries.some(e=>e.entry_id===entry.target_id),'找不到被关联的本人历史条目');
     const children=renderInteraction(interaction),clientToken=digest(`${manifest.school_id}|${doc.document_id}|${interaction.interaction_id}`);
+    let index=-1;
+    if(record.metadata.presentation_layout==='content-first-v2') {
+      const root=doc.blocks.find(b=>b.block_id===doc.document_id),meta=doc.blocks.filter(b=>b.block_type===14&&markedJson(textOf(b),'school-record-meta-v1').length);
+      requireValue(meta.length===1&&root?.children?.at(-1)===meta[0].block_id,'文末元数据位置已变化，先核对排版，不修改历史');
+      index=root.children.length-1;
+    }
     let writeError;
-    try {this.lark.api('POST',`/open-apis/docx/v1/documents/${doc.document_id}/blocks/${doc.document_id}/children`,{document_revision_id:doc.revision_id,client_token:clientToken},{index:-1,children});}
+    try {this.lark.api('POST',`/open-apis/docx/v1/documents/${doc.document_id}/blocks/${doc.document_id}/children`,{document_revision_id:doc.revision_id,client_token:clientToken},{index,children});}
     catch(error){
       // Only uncertain transport outcomes may recover via readback. Never erase an identity failure.
       if(!['outcome_unknown','cli_failed'].includes(error.code))throw new SchoolError(error.code||'write_failed',error.message,{...error.details,...details});

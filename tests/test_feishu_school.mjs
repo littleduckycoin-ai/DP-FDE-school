@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SchoolClient,SchoolError,LarkCli,unwrap,markedJson,parseReflection,codeBlock,textBlock,renderInteraction,validatePayload,meetingData,main,SCHOOL_MANIFEST,validateReflectionLayout} from '../skills/school-guide/scripts/feishu_school.mjs';
+import {SchoolClient,SchoolError,LarkCli,unwrap,markedJson,parseReflection,codeBlock,textBlock,textOf,renderInteraction,validatePayload,meetingData,main,SCHOOL_MANIFEST,validateReflectionLayout} from '../skills/school-guide/scripts/feishu_school.mjs';
 
 const row={id:1,case_id:'case-01-manufacturing-training',base_document_id:'base01',source_pdf_pages:[8,9],reflections_parent:{type:'folder',token:'folder01',parent_token:'reflection-root'}};
 const manifest={schema_version:'feishu-school-v1',school_id:'fde-school',rules_document_id:'rules',reflections_layout:'separate-root-per-case',reflections_root:{type:'folder',token:'reflection-root'},cases:[row]};
@@ -30,7 +30,7 @@ class FakeLark {
     if(method==='GET'&&path.endsWith('/blocks'))return {items:structuredClone(doc.blocks),has_more:false};
     if(method==='GET')return {document:{document_id:id,revision_id:doc.revision,title:doc.title}};
     this.posts++;
-    if(!this.tokens.has(params.client_token)){this.tokens.add(params.client_token);const added=body.children.map((block,i)=>({...block,block_id:`b${doc.revision}-${i}`,parent_id:id}));doc.blocks.push(...added);doc.blocks.find(b=>b.block_id===id)?.children.push(...added.map(b=>b.block_id));doc.revision++;}
+    if(!this.tokens.has(params.client_token)){this.tokens.add(params.client_token);const added=body.children.map((block,i)=>({...block,block_id:`b${doc.revision}-${i}`,parent_id:id}));const root=doc.blocks.find(b=>b.block_id===id);const index=body.index===-1?root.children.length:body.index;const beforeId=root.children[index];const flatIndex=beforeId?doc.blocks.findIndex(b=>b.block_id===beforeId):doc.blocks.length;doc.blocks.splice(flatIndex,0,...added);root.children.splice(index,0,...added.map(b=>b.block_id));doc.revision++;}
     this.onPost?.(doc);
     if(this.timeoutAfterWrite)throw new SchoolError('outcome_unknown','timeout');
     return {children:doc.blocks,document_revision_id:doc.revision};
@@ -110,6 +110,51 @@ test('render and parse retain exact wording, agent feedback and machine fields',
   const turn=payload().interaction;turn.agent_feedback=['补充验证建议'];
   const doc={blocks:[codeBlock('school-record-meta-v1\n{"learner_id":"alice"}'),...renderInteraction(turn)]};
   const {_block_id,...actual}=parseReflection(doc).interactions[0];assert.deepEqual(actual,turn);
+});
+
+test('long multi-paragraph reasoning remains verbatim with context and technical fields at the end',()=>{
+  const input=payload();const entry=input.interaction.contributions[0];
+  entry.text=('我暂时不确定。理由是任务难度不同，例子是新人只遇到简单任务。\n\n如果让师傅补记，又会增加负担。这个反例不能删。\n').repeat(80);
+  entry.context='回应 Agent 关于以独立上岗率验收的建议。';
+  validatePayload(input,row,[row]);const blocks=renderInteraction(input.interaction);
+  const readable=blocks.slice(0,-2).map(textOf).join('\n');
+  assert.ok(readable.includes(entry.text));assert.ok(readable.includes('讨论背景（Agent整理，不是学员原话）：'+entry.context));
+  assert.ok(!readable.includes(entry.entry_id));assert.ok(!readable.includes('captured'));
+  assert.equal(markedJson(textOf(blocks.at(-1)),'school-interaction-v1')[0].contributions[0].text,entry.text);
+});
+
+test('new documents retain metadata at the end across two appends and retry without duplicate blocks',()=>{
+  const fake=new FakeLark(),client=new SchoolClient(fake),first=payload();
+  const ready=client.createRecord(manifest,1,first);
+  client.append(manifest,1,{...first,document_id:ready.document_id});
+  const second={...payload('turn2'),document_id:ready.document_id};
+  second.interaction.contributions[0].context='补充前一轮的适用条件。';
+  client.append(manifest,1,second);
+  const d=fake.documents.get(ready.document_id),ids=[...d.blocks[0].children];
+  assert.equal(ids.at(-1),'meta'+ready.document_id);
+  assert.deepEqual(parseReflection({blocks:d.blocks}).interactions.map(t=>t.interaction_id),['turn1','turn2']);
+  client.append(manifest,1,second);assert.deepEqual(d.blocks[0].children,ids);assert.equal(fake.posts,2);
+});
+
+test('loss of readable context fails verification even with complete JSON',()=>{
+  const fake=new FakeLark(),client=new SchoolClient(fake),input=payload();input.interaction.contributions[0].context='关键背景不可省略';
+  fake.onPost=d=>{const b=d.blocks.find(b=>b.block_type===2&&textOf(b).includes('关键背景不可省略'));b.text.elements=[{text_run:{content:input.interaction.contributions[0].text}}];};
+  assert.throws(()=>save(client,manifest,1,input),e=>e.code==='save_unverified');
+});
+
+test('legacy readable layout can be retried without rewriting history',()=>{
+  const fake=new FakeLark(),client=new SchoolClient(fake),input=payload(),saved=save(client,manifest,1,input);
+  const d=fake.documents.get(saved.document_id),record=parseReflection({blocks:d.blocks});
+  delete record.metadata.presentation_layout;
+  const {_block_id,...turn}=record.interactions[0],entry=turn.contributions[0];
+  const old=[codeBlock('school-record-meta-v1\n'+JSON.stringify(record.metadata)),
+    {block_type:4,heading2:{elements:[{text_run:{content:turn.created_at+'｜'+turn.summary}}]}},
+    textBlock('思考｜学员原话｜captured\n'+entry.text+'\n记录编号：'+entry.entry_id+'\n案例依据：'+row.case_id+' PDF物理页 8 原访谈'),
+    codeBlock('school-interaction-v1\n'+JSON.stringify(turn)+'\nschool-interaction-end')];
+  d.blocks=[{block_id:saved.document_id,block_type:1,page:{elements:[]},children:old.map((_,i)=>'old'+i)},...old.map((b,i)=>({...b,block_id:'old'+i,parent_id:saved.document_id}))];
+  const before=structuredClone(d.blocks);
+  const result=client.append(manifest,1,{...input,document_id:saved.document_id});
+  assert.equal(result.existing,true);assert.deepEqual(d.blocks,before);
 });
 test('all pages are read and a repeated continuation is not treated as complete',()=>{
   let calls=0;const c=new SchoolClient({api:()=>++calls===1?{items:[1],has_more:true,page_token:'next'}:{items:[2],has_more:false}});

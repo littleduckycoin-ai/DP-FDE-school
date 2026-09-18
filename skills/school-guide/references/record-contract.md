@@ -18,25 +18,33 @@
 
 每位学员、每个案例、每个学习日期一个 reflection 知识文档；日期使用学习会话明确的时区。每轮在其中追加 interaction；跨多个案例的表达分别落到各案例并保留关联。
 
+默认保留完整原句，不把沉淀当作摘要任务。`summary` 只充当主题标题；每个 `contributions[].text` 保存有价值表达的原话，包括理由、例子、适用条件、反例、疑问、犹豫和观点变化。新颖但未成熟的设想也应保留，不按 Agent 的赞同程度筛选。只有用户明确要求概括或脱敏时才改写并标记 `paraphrase`；不能将润色、纠错或补充后的文字标成 `verbatim`。
+
+提交前对照本轮原文逐项检查：独立观点和问题是否齐全，论证与例子是否仍在，前提和不确定语气是否保留，前后变化是否有记录。不设“每轮只留三点”等压缩规则；保持一段论证的连贯性，用户原有段落可原样保留。对“这个”“我同意一半”等承接表达，用可选 `context` 补充触发问题或引用的同伴观点，并明确这是 Agent 整理的背景，不能混入原话。同伴和 Agent 的原有观点不冒充当前用户贡献。
+
+接口上限是传输限制，不是缩写要求。单条原文超过 12000 字符、单轮超过 20 条或 JSON 超过 60KB 时，按原顺序分段，使用稳定的新 interaction/entry ID 和 `relates_to` 关联前段，在背景中标注续段。不得截断、删去“重复但有新条件”的部分或用短摘要代替。逐段写后核验；未保存部分保留完整待提交正文，不报告为全部成功。
+
 记录结构沿用 `school-record-v1` 的语义：
 
 | 层级 | 字段 |
 |---|---|
 | 文档 | `schema_version`、`case_id`、`learner_id`、`display_name`、`identity_source`、`study_date`、`visibility`、`interactions` |
 | 一轮 | `interaction_id`、`summary`、`contributions`、`agent_feedback`、`next_steps`、含时区的 `created_at` |
-| 学员条目 | `kind`、`text`、`capture`、`confirmation`、`source_refs`、`entry_id`、`relates_to` |
+| 学员条目 | `kind`、`text`、可选 `context`、`capture`、`confirmation`、`source_refs`、`entry_id`、`relates_to` |
 | 来源 | `case_id`、`case_number`、`pdf_pages`、`note` |
 
 `kind` 新记录使用 `thought`、`evaluation`、`question`、`application`、`disagreement`、`feedback`、`revision`。旧 `question_status` 仅兼容读取原文，不再新增或推导业务状态。平台写入者、文档 token、版本和 API 回执放在平台元数据中，不冒充学员条目。
 
-- `capture=verbatim` 表示原话；忠实概括用 `paraphrase`。
+- 默认 `capture=verbatim` 表示逐字原话；经用户要求的概括或脱敏用 `paraphrase`。
 - 自动捕获用 `confirmation=captured`；学员明确确认这份记录后才能用 `confirmed`。
 - `entry_id` 沿用 `case_id:learner_id:interaction_id:两位条目序号`，从 `01` 开始。
 - 没有事实依据或关联条目时，`source_refs`、`relates_to` 使用空数组，不能补造出处。
 - `agent_feedback` 与 `next_steps` 单独展示；后者是待验证建议，不代表用户承诺。
 - 脚本当前写入 `visibility=school_shared`，它仅表达预期用途，不证明飞书 ACL 已配置；真实可见范围仍须核验。
 
-正文须能直接阅读：时间、作者、条目类型、原话或概括、来源，以及分开的 Agent 反馈。结构化数据与正文应由同一份记录生成。飞书原生代码块保存唯一的 `school-record-meta-v1` 文档元数据，每轮追加 `school-interaction-v1` 代码块；可读正文由同一输入生成，具体由脚本处理。飞书正文是共享学习知识的载体；结构化字段可以辅助校验与检索，但不能只留在私聊、群消息或文档评论中。
+正文阅读顺序为：作者与日期、每轮主题与时间、各条类型和完整表达（需要时先给讨论背景）、案例依据、单列的 Agent 反馈与待验证建议。记录编号、确认状态、关联 ID、操作者和授权等技术字段收在本轮末尾的“记录信息”，不夹在每条思考中。
+
+结构化数据与正文由同一份输入生成，不生成一份完整 JSON 却只展示缩略正文。原生代码块保留唯一 `school-record-meta-v1` 和每轮 `school-interaction-v1`。新建文档标记 `presentation_layout=content-first-v2`，文档元数据保持在文末，新讨论插入其前；每轮核验信息位于该轮正文之后。旧文档不重排、不改写，按原位置追加新格式，兼容校验历史格式。脚本保留去重、身份和完整回读检查，但无法发现 Agent 在提交前漏掉的用户表达，原文覆盖必须由 Agent 自查。
 
 ## 历史与关联
 
